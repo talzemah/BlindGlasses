@@ -8,9 +8,7 @@ import android.provider.MediaStore;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -37,12 +35,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import static android.content.ContentValues.TAG;
-
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_CAMERA = 1;
+    private static final int REQUEST_GALLERY = 2;
 
     private VisualRecognition visualRecognition;
     private TextToSpeech tts;
@@ -55,8 +52,9 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
 
     private File currentPhotoFile;
-    private ArrayAdapter adapter;
+    private CustomArrayAdapter customAdapter;
     private ArrayList<Result> resArr;
+    private ArrayList<Result> filterResArr;
 
 
     @Override
@@ -74,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
             public void onInit(int status) {
                 if (status != TextToSpeech.ERROR) {
                     tts.setLanguage(Locale.ENGLISH);
-                    tts.setSpeechRate(0.9f);
+                    tts.setSpeechRate(0.7f);
                     tts.setPitch(0.9f);
                 }
             }
@@ -83,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         // Create results filter object.
         filter = new ResultsFilter();
 
-        // Show the current photo.
+        // ImageView to show the current photo.
         resultImageView = (ImageView) findViewById(R.id.imageView_result);
 
         // Show the results.
@@ -95,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize the ArrayList.
         resArr = new ArrayList<>();
+        filterResArr = new ArrayList<>();
 
         // Camera button.
         captureImageBtn = (Button) findViewById(R.id.Btn_CaptureImage);
@@ -102,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                takePictureFromCamera();
+                takePictureFromCamera(REQUEST_CAMERA);
                 resListView.setAdapter(null);
             }
         });
@@ -113,31 +112,47 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Log.d(TAG, getString(R.string.VisualRecognitionApiKey));
-                System.out.println(getString(R.string.VisualRecognitionApiKey));
+                takePictureFromCamera(REQUEST_GALLERY);
+                resListView.setAdapter(null);
             }
         });
 
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // todo stop speak.
+        tts.shutdown();
+        tts.stop();
+    }
+
     // speak the final results after sort and filtering.
     private void startSpeak() {
 
-        for (int i = 0; i < resArr.size(); i++) {
+        for (int i = 0; i < filterResArr.size(); i++) {
 
-            tts.speak(resArr.get(i).getname(), TextToSpeech.QUEUE_ADD, null, null);
+            tts.speak(filterResArr.get(i).getname(), TextToSpeech.QUEUE_ADD, null, null);
         }
     }
 
     // Open camera in order to take a picture.
-    private void takePictureFromCamera() {
+    private void takePictureFromCamera(int request) {
 
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        Intent takePictureIntent;
+
+        if (request == REQUEST_CAMERA) {
+            takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        } else {
+            takePictureIntent = new Intent(Intent.ACTION_PICK);
+            takePictureIntent.setType("image/*");
+        }
 
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
 
-            // Create the File where the photo should go
+            // Create the File where the photo should go.
             currentPhotoFile = null;
             try {
                 currentPhotoFile = createImageFile();
@@ -154,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
                         currentPhotoFile);
 
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_CAMERA);
+                startActivityForResult(takePictureIntent, request);
             }
         }
     }
@@ -168,9 +183,9 @@ public class MainActivity extends AppCompatActivity {
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
 
         File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
+                imageFileName,  // prefix
+                ".jpg",         // suffix
+                storageDir      // directory
         );
 
         return image;
@@ -187,6 +202,17 @@ public class MainActivity extends AppCompatActivity {
                     .load(currentPhotoFile)
                     .into(resultImageView);
 
+            // todo compress the image file.
+
+            usingVisualRecognition();
+            // todo same conditions.
+        } else if (requestCode == REQUEST_GALLERY && resultCode == RESULT_OK) {
+
+            // Show the captured image in resultImageView.
+            Picasso.with(this)
+                    .load(data.getData())
+                    .into(resultImageView);
+
             usingVisualRecognition();
         }
     }
@@ -197,7 +223,8 @@ public class MainActivity extends AppCompatActivity {
         InputStream imagesStream = null;
 
         try {
-            imagesStream = new FileInputStream(currentPhotoFile.toString());
+            imagesStream = new FileInputStream(currentPhotoFile);
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -208,9 +235,6 @@ public class MainActivity extends AppCompatActivity {
                 // todo  parameters? 
                 // .parameters("{\"classifier_ids\": [\"fruits_1462128776\", + \"SatelliteModel_6242312846\"]}")
                 .build();
-
-        // Synchronous Request.
-        /// ClassifiedImages result = visualRecognition.classify(classifyOptions).execute();
 
         // Asynchronous Request
         visualRecognition.classify(classifyOptions).enqueue(new ServiceCallback<ClassifiedImages>() {
@@ -231,10 +255,20 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Exception e) {
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(MainActivity.this, "Error while processing the image!", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
                 System.out.println(e);
             }
         });
 
+        // todo write first of all.
         progressBar.setVisibility(View.VISIBLE);
 
     }
@@ -250,6 +284,7 @@ public class MainActivity extends AppCompatActivity {
                 if (classList.size() > 0) {
 
                     // Sort the results
+                    // todo use another way to sort.
                     classList.sort(new Comparator<ClassResult>() {
                         @Override
                         public int compare(ClassResult o1, ClassResult o2) {
@@ -257,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
 
-                    // Reset the resArr
+                    // Removes all of the elements from resArr.
                     resArr.clear();
 
                     for (int i = 0; i < classList.size(); i++) {
@@ -270,18 +305,18 @@ public class MainActivity extends AppCompatActivity {
                     // Continue only if there are any results.
                     if (!resArr.isEmpty()) {
 
-                        adapter = null;
-                        adapter = new ArrayAdapter(this, R.layout.activity_listview, resArr);
+                        // Performs a set of filters on the results.
+                        filterResArr = filter.startFiltering(resArr);
+
+                        customAdapter = null;
+                        customAdapter = new CustomArrayAdapter(this, R.layout.activity_listview, resArr, filterResArr);
 
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
 
                                 // Show the sort result on screen.
-                                resListView.setAdapter(adapter);
-
-                                // Performs a set of filters on the results.
-                                resArr = filter.startFiltering(resArr);
+                                resListView.setAdapter(customAdapter);
 
                                 // Speak the relevant results that passed the filter
                                 startSpeak();

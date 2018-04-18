@@ -2,7 +2,8 @@ package talzemah.blindglasses;
 
 import java.util.ArrayList;
 
-public class ResultsFilter { // singleton
+public class ResultsFilter {
+    //todo  singleton?
 
     private static final float QUALITY_THRESHOLD = 0.6f;
     private static final int MIN_THRESHOLD = 4;
