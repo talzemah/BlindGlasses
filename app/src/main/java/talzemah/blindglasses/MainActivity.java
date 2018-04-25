@@ -1,9 +1,7 @@
 package talzemah.blindglasses;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -11,6 +9,7 @@ import android.provider.MediaStore;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -59,17 +58,11 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Result> resArr;
     private ArrayList<Result> filterResArr;
 
-    private Camera camera;
-    private Camera.Parameters parameters;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // for disable the flashLight using.
-        camera = Camera.open();
-        parameters = camera.getParameters();
         // todo fix that.
         //turnOffFlash();
 
@@ -193,13 +186,13 @@ public class MainActivity extends AppCompatActivity {
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
 
-        File image = File.createTempFile(
-                imageFileName,  // prefix
-                ".jpg",         // suffix
-                storageDir      // directory
+        File file = File.createTempFile(
+                imageFileName,   // prefix
+                ".jpg",    // suffix
+                storageDir       // directory
         );
 
-        return image;
+        return file;
     }
 
     // Invoke When user come back from camera to the application.
@@ -229,7 +222,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void compressTheImage() {
-
 
 
     }
@@ -284,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-                System.out.println(e);
+                Log.e(e.getClass().getName(), e.getStackTrace().toString());
             }
         });
 
@@ -295,6 +287,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // Get the result object from VR, sort the element and update the resArr.
+    @SuppressLint("NewApi")
     private void UpdateAndSortResults(ClassifiedImages result) {
 
         if (result.getImages() != null) {
@@ -306,7 +299,6 @@ public class MainActivity extends AppCompatActivity {
 
                     // Sort the results
                     // todo use another way to sort.
-                    //noinspection Since15
                     classList.sort(new Comparator<ClassResult>() {
                         @Override
                         public int compare(ClassResult o1, ClassResult o2) {
@@ -348,42 +340,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-    }
-
-    private void showCapturedImage() {
-
-        // Get the dimensions of the View
-        int targetW = resultImageView.getWidth();
-        int targetH = resultImageView.getHeight();
-
-        // Get the dimensions of the bitmap
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(currentPhotoFile.getPath(), bmOptions);
-        int photoW = bmOptions.outWidth;
-        int photoH = bmOptions.outHeight;
-
-        // Determine how much to scale down the image
-        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
-
-        // Decode the image file into a Bitmap sized to fill the View
-        bmOptions.inJustDecodeBounds = false;
-        bmOptions.inSampleSize = scaleFactor;
-        bmOptions.inPurgeable = true;
-
-        Bitmap bitmap = BitmapFactory.decodeFile(currentPhotoFile.getPath(), bmOptions);
-        resultImageView.setImageBitmap(bitmap);
-    }
-
-    private void turnOffFlash() {
-
-        //parameters.setFlashMode(Camera.Parameters.SCENE_MODE_THEATRE);
-        parameters.setSceneMode(Camera.Parameters.SCENE_MODE_THEATRE);
-        camera.setParameters(parameters);
-        //camera.stopPreview();
-        //camera.release();
-        //camera.startPreview();
-
     }
 
 } // End MainActivity
