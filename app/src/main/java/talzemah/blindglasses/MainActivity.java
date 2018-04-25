@@ -1,6 +1,9 @@
 package talzemah.blindglasses;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -38,7 +41,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int REQUEST_CAMERA = 1;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_GALLERY = 2;
 
     private VisualRecognition visualRecognition;
@@ -56,11 +59,19 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Result> resArr;
     private ArrayList<Result> filterResArr;
 
+    private Camera camera;
+    private Camera.Parameters parameters;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // for disable the flashLight using.
+        camera = Camera.open();
+        parameters = camera.getParameters();
+        // todo fix that.
+        //turnOffFlash();
 
         // Create VisualRecognition Object.
         visualRecognition = new VisualRecognition(VisualRecognition.VERSION_DATE_2016_05_20);
@@ -101,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                takePictureFromCamera(REQUEST_CAMERA);
+                takePictureFromCamera(REQUEST_IMAGE_CAPTURE);
                 resListView.setAdapter(null);
             }
         });
@@ -142,14 +153,14 @@ public class MainActivity extends AppCompatActivity {
 
         Intent takePictureIntent;
 
-        if (request == REQUEST_CAMERA) {
+        if (request == REQUEST_IMAGE_CAPTURE) {
             takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         } else {
             takePictureIntent = new Intent(Intent.ACTION_PICK);
             takePictureIntent.setType("image/*");
         }
 
-        // Ensure that there's a camera activity to handle the intent
+        // Ensure that there's a camera activity to handle this intent.
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
 
             // Create the File where the photo should go.
@@ -158,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
                 currentPhotoFile = createImageFile();
             } catch (IOException ex) {
                 // Error occurred while creating the File
-                Toast.makeText(this, "Failed while creating the File!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error occurred while creating the File!", Toast.LENGTH_SHORT).show();
             }
 
             // Continue only if the File was successfully created
@@ -177,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
     // Create image file to populate the captured image.
     private File createImageFile() throws IOException {
 
-        // Create an image file name
+        // Create an image file name.
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
@@ -195,16 +206,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Make sure user return from the camera and there is no some problem.
-        if (requestCode == REQUEST_CAMERA && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
 
             // Show the captured image in resultImageView.
+            //showCapturedImage();
             Picasso.with(this)
                     .load(currentPhotoFile)
                     .into(resultImageView);
 
-            // todo compress the image file.
-
             usingVisualRecognition();
+
             // todo same conditions.
         } else if (requestCode == REQUEST_GALLERY && resultCode == RESULT_OK) {
 
@@ -217,8 +228,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void compressTheImage() {
+
+
+
+    }
+
     // Analyzes what is in the picture.
     private void usingVisualRecognition() {
+
+        // todo compress the image file.
+        compressTheImage();
 
         InputStream imagesStream = null;
 
@@ -273,6 +293,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     // Get the result object from VR, sort the element and update the resArr.
     private void UpdateAndSortResults(ClassifiedImages result) {
 
@@ -285,6 +306,7 @@ public class MainActivity extends AppCompatActivity {
 
                     // Sort the results
                     // todo use another way to sort.
+                    //noinspection Since15
                     classList.sort(new Comparator<ClassResult>() {
                         @Override
                         public int compare(ClassResult o1, ClassResult o2) {
@@ -328,5 +350,40 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void showCapturedImage() {
+
+        // Get the dimensions of the View
+        int targetW = resultImageView.getWidth();
+        int targetH = resultImageView.getHeight();
+
+        // Get the dimensions of the bitmap
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(currentPhotoFile.getPath(), bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+
+        // Determine how much to scale down the image
+        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+
+        // Decode the image file into a Bitmap sized to fill the View
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inPurgeable = true;
+
+        Bitmap bitmap = BitmapFactory.decodeFile(currentPhotoFile.getPath(), bmOptions);
+        resultImageView.setImageBitmap(bitmap);
+    }
+
+    private void turnOffFlash() {
+
+        //parameters.setFlashMode(Camera.Parameters.SCENE_MODE_THEATRE);
+        parameters.setSceneMode(Camera.Parameters.SCENE_MODE_THEATRE);
+        camera.setParameters(parameters);
+        //camera.stopPreview();
+        //camera.release();
+        //camera.startPreview();
+
+    }
 
 } // End MainActivity
