@@ -1,8 +1,12 @@
 package talzemah.blindglasses;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -40,11 +44,13 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static String TAG = "MainActivity";
+
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_GALLERY = 2;
 
     private VisualRecognition visualRecognition;
-    private TextToSpeech tts;
+    private TextToSpeech textToSpeech;
     private ResultsFilter filter;
 
     private Button captureImageBtn;
@@ -63,21 +69,34 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // todo fix that.
-        //turnOffFlash();
-
         // Create VisualRecognition Object.
         visualRecognition = new VisualRecognition(VisualRecognition.VERSION_DATE_2016_05_20);
         visualRecognition.setApiKey(getString(R.string.VisualRecognitionApiKey));
 
         // Create TextToSpeech Object (Android).
-        tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
-                if (status != TextToSpeech.ERROR) {
-                    tts.setLanguage(Locale.ENGLISH);
-                    tts.setSpeechRate(0.7f);
-                    tts.setPitch(0.9f);
+                if (status == TextToSpeech.SUCCESS) {
+                    // Set language to speech.
+                    int languageResult = textToSpeech.setLanguage(Locale.ENGLISH);
+                    // Verifies that language is supported and available.
+                    if (languageResult == TextToSpeech.LANG_NOT_SUPPORTED || languageResult == TextToSpeech.LANG_MISSING_DATA) {
+                        Toast.makeText(MainActivity.this, textToSpeech.getVoice().getLocale() + " language is not supported", Toast.LENGTH_SHORT).show();
+                        textToSpeech.setLanguage(Locale.getDefault());
+                    } else {
+                        // TextToSpeech initialization success.
+                        captureImageBtn.setEnabled(true);
+                        selectImageBtn.setEnabled(true);
+
+                        textToSpeech.setSpeechRate(0.7f);
+                        textToSpeech.setPitch(0.9f);
+                    }
+
+                } else {
+                    // TextToSpeech initialization Failed.
+                    Toast.makeText(MainActivity.this, "TextToSpeech initialization error", Toast.LENGTH_LONG).show();
+                    finish();
                 }
             }
         });
@@ -87,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
 
         // ImageView to show the current photo.
         resultImageView = (ImageView) findViewById(R.id.imageView_result);
+        /// resultImageView.setMaxHeight((int)0.33 * Resources.getSystem().getDisplayMetrics().heightPixels);
 
         // Show the results.
         resListView = (ListView) findViewById(R.id.ListView_results);
@@ -104,6 +124,8 @@ public class MainActivity extends AppCompatActivity {
         captureImageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                // takePictureFromCamera2(REQUEST_IMAGE_CAPTURE);
 
                 takePictureFromCamera(REQUEST_IMAGE_CAPTURE);
                 resListView.setAdapter(null);
@@ -124,25 +146,50 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onPause() {
+        super.onPause();
+        // Stop speech when App is going into the background.
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+        }
+    }
 
-        // todo stop speak.
-        tts.shutdown();
-        tts.stop();
+    @Override
+    protected void onDestroy() {
+        // Release resources of textToSpeech when App is closed.
+        if (textToSpeech != null) {
+            textToSpeech.shutdown();
+        }
+
+        super.onDestroy();
     }
 
     // speak the final results after sort and filtering.
-    private void startSpeak() {
+    private void speak() {
 
         for (int i = 0; i < filterResArr.size(); i++) {
 
-            tts.speak(filterResArr.get(i).getname(), TextToSpeech.QUEUE_ADD, null, null);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                textToSpeech.speak(filterResArr.get(i).getname(), TextToSpeech.QUEUE_ADD, null, null);
+            else
+                textToSpeech.speak(filterResArr.get(i).getname(), TextToSpeech.QUEUE_ADD, null);
+
         }
     }
 
     // Open camera in order to take a picture.
+    private void takePictureFromCamera2(int request) {
+
+        Intent intent = new Intent(this, CameraActivity.class);
+        String message = "Test message";
+        intent.putExtra("extraData", message);
+        startActivity(intent);
+    }
+
+    // Open camera in order to take a picture.
     private void takePictureFromCamera(int request) {
+
+        handleActionTurnOffFlashLight(this);
 
         Intent takePictureIntent;
 
@@ -229,6 +276,8 @@ public class MainActivity extends AppCompatActivity {
     // Analyzes what is in the picture.
     private void usingVisualRecognition() {
 
+        progressBar.setVisibility(View.VISIBLE);
+
         // todo compress the image file.
         compressTheImage();
 
@@ -279,10 +328,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(e.getClass().getName(), e.getStackTrace().toString());
             }
         });
-
-        // todo write first of all.
-        progressBar.setVisibility(View.VISIBLE);
-
     }
 
 
@@ -333,12 +378,23 @@ public class MainActivity extends AppCompatActivity {
                                 resListView.setAdapter(customAdapter);
 
                                 // Speak the relevant results that passed the filter
-                                startSpeak();
+                                speak();
                             }
                         });
                     }
                 }
             }
+        }
+    }
+
+    private static void handleActionTurnOffFlashLight(Context context) {
+        try {
+            CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+            manager.setTorchMode(manager.getCameraIdList()[0], false);
+
+        } catch (CameraAccessException e) {
+            Log.e(TAG, e.getMessage());
+            e.printStackTrace();
         }
     }
 

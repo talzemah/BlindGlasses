@@ -15,7 +15,7 @@ public class ResultsFilter {
     private ArrayList<Result> colorResArr;
 
 
-    public ResultsFilter() {
+    protected ResultsFilter() {
 
         filterResArr = new ArrayList<>();
         colorResArr = new ArrayList<>();
@@ -95,7 +95,6 @@ public class ResultsFilter {
     }
 
     public void setFilterResArr(ArrayList<Result> filterResArr) {
-        this.filterResArr = null; // todo is necessary?
         this.filterResArr = filterResArr;
     }
 

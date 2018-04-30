@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">BlindGlasses</string>
+    <string name="take_picture">Take picture</string>
+    <string name="result_image_view_description">Displays the captured image</string>
 </resources>
