@@ -1,12 +1,8 @@
 package talzemah.blindglasses;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -75,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Create TextToSpeech Object (Android).
         textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+
             @Override
             public void onInit(int status) {
                 if (status == TextToSpeech.SUCCESS) {
@@ -86,9 +83,10 @@ public class MainActivity extends AppCompatActivity {
                         textToSpeech.setLanguage(Locale.getDefault());
                     } else {
                         // TextToSpeech initialization success.
-                        captureImageBtn.setEnabled(true);
-                        selectImageBtn.setEnabled(true);
 
+                        enableButtons();
+
+                        // Set custom parameters.
                         textToSpeech.setSpeechRate(0.7f);
                         textToSpeech.setPitch(0.9f);
                     }
@@ -104,9 +102,8 @@ public class MainActivity extends AppCompatActivity {
         // Create results filter object.
         filter = new ResultsFilter();
 
-        // ImageView to show the current photo.
+        // ImageView to show the captured image.
         resultImageView = (ImageView) findViewById(R.id.imageView_result);
-        /// resultImageView.setMaxHeight((int)0.33 * Resources.getSystem().getDisplayMetrics().heightPixels);
 
         // Show the results.
         resListView = (ListView) findViewById(R.id.ListView_results);
@@ -125,9 +122,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                // takePictureFromCamera2(REQUEST_IMAGE_CAPTURE);
-
                 takePictureFromCamera(REQUEST_IMAGE_CAPTURE);
+
+                // todo other location.
                 resListView.setAdapter(null);
             }
         });
@@ -139,10 +136,19 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 takePictureFromCamera(REQUEST_GALLERY);
+
+                // todo other location.
                 resListView.setAdapter(null);
             }
         });
 
+    }
+
+    private void enableButtons() {
+        if (textToSpeech != null && visualRecognition != null) {
+            captureImageBtn.setEnabled(true);
+            selectImageBtn.setEnabled(true);
+        }
     }
 
     @Override
@@ -156,40 +162,27 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        // Release resources of textToSpeech when App is closed.
-        if (textToSpeech != null) {
-            textToSpeech.shutdown();
-        }
-
         super.onDestroy();
+
+        // Release resources of textToSpeech when App is closed.
+        if (textToSpeech != null)
+            textToSpeech.shutdown();
+
+
+        if (visualRecognition != null)
+            visualRecognition = null;
     }
 
     // speak the final results after sort and filtering.
     private void speak() {
 
         for (int i = 0; i < filterResArr.size(); i++) {
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                textToSpeech.speak(filterResArr.get(i).getname(), TextToSpeech.QUEUE_ADD, null, null);
-            else
-                textToSpeech.speak(filterResArr.get(i).getname(), TextToSpeech.QUEUE_ADD, null);
-
+            textToSpeech.speak(filterResArr.get(i).getname(), TextToSpeech.QUEUE_ADD, null, null);
         }
     }
 
     // Open camera in order to take a picture.
-    private void takePictureFromCamera2(int request) {
-
-        Intent intent = new Intent(this, CameraActivity.class);
-        String message = "Test message";
-        intent.putExtra("extraData", message);
-        startActivity(intent);
-    }
-
-    // Open camera in order to take a picture.
     private void takePictureFromCamera(int request) {
-
-        handleActionTurnOffFlashLight(this);
 
         Intent takePictureIntent;
 
@@ -270,7 +263,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void compressTheImage() {
 
-
     }
 
     // Analyzes what is in the picture.
@@ -325,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-                Log.e(e.getClass().getName(), e.getStackTrace().toString());
+                Log.e(TAG, e.toString());
             }
         });
     }
@@ -384,17 +376,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-        }
-    }
-
-    private static void handleActionTurnOffFlashLight(Context context) {
-        try {
-            CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
-            manager.setTorchMode(manager.getCameraIdList()[0], false);
-
-        } catch (CameraAccessException e) {
-            Log.e(TAG, e.getMessage());
-            e.printStackTrace();
         }
     }
 

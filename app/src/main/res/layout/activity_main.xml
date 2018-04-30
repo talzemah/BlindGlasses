@@ -28,7 +28,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:enabled="false"
-        android:text="Select image"
+        android:text="@string/btn_select_image"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageView_result" />
 
@@ -46,7 +46,7 @@
         android:layout_height="wrap_content"
         android:layout_marginRight="8dp"
         android:enabled="false"
-        android:text="Capture Image"
+        android:text="@string/btn_capture_image"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageView_result"
         tools:enabled="false" />

@@ -82,9 +82,12 @@ public class ResultsFilter {
     }
 
     private void mergeResultsWithColor() {
-        for (int i = 0; i < colorResArr.size(); i++) {
-            filterResArr.add(colorResArr.get(i));
-        }
+        // todo delete
+//        for (int i = 0; i < colorResArr.size(); i++) {
+//            filterResArr.add(colorResArr.get(i));
+//        }
+
+        filterResArr.addAll(colorResArr);
     }
 
 

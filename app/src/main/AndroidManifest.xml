@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest
+
+    xmlns:android="http://schemas.android.com/apk/res/android"
     package="talzemah.blindglasses">
 
     <uses-feature
@@ -11,7 +13,6 @@
     <uses-permission android:name="android.hardware.camera2.full" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
-
 
     <application
         android:allowBackup="true"
@@ -43,6 +44,7 @@
         <activity
             android:name=".CameraActivity"
             android:screenOrientation="portrait"></activity>
+
     </application>
 
 </manifest>
