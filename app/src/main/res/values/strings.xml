@@ -7,7 +7,8 @@
     <string name="btn_select_image">Select image</string>
     <string name="btn_capture_image">Capture image</string>
 
-
-
+    <!--Toast messages-->
+    <string name="take_photo_help">Touch anywhere on preview to take picture</string>
+    <string name="rear_camera_not_found">Rear camera not found on device</string>
 
 </resources>

@@ -40,10 +40,13 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
+    /// public static final String EXTRA_MESSAGE = "talzemah.blindglasses.MESSAGE";
+
     private static String TAG = "MainActivity";
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_GALLERY = 2;
+    private static final int REQUEST_IMAGE_PATH = 3;
 
     private VisualRecognition visualRecognition;
     private TextToSpeech textToSpeech;
@@ -122,7 +125,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                takePictureFromCamera(REQUEST_IMAGE_CAPTURE);
+                // Go to camera activity.
+                Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
+                /// String message = "Test message";
+                /// intent.putExtra(EXTRA_MESSAGE, message);
+                startActivityForResult(intent, REQUEST_IMAGE_PATH);
+
+                //takePictureFromCamera(REQUEST_IMAGE_CAPTURE);
 
                 // todo other location.
                 resListView.setAdapter(null);
@@ -238,11 +247,42 @@ public class MainActivity extends AppCompatActivity {
     // Invoke When user come back from camera to the application.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // Make sure user return from the camera and there is no some problem.
+
+        // Make sure there is no some problem.
+        if (resultCode == RESULT_OK) {
+
+            switch (requestCode) {
+                case REQUEST_IMAGE_CAPTURE:
+
+                    showAndAnalyzeImage();
+
+                    break;
+                case REQUEST_GALLERY:
+
+                    showAndAnalyzeImage();
+
+                    break;
+                case REQUEST_IMAGE_PATH:
+
+                    // Update currentPhotoFile path.
+                    String path = data.getStringExtra("imagePath");
+
+                    if (path != null) {
+                        currentPhotoFile = new File(path);
+                        showAndAnalyzeImage();
+                    }
+
+                    break;
+                default:
+
+                    break;
+            }
+        }
+
+
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
 
             // Show the captured image in resultImageView.
-            //showCapturedImage();
             Picasso.with(this)
                     .load(currentPhotoFile)
                     .into(resultImageView);
@@ -259,6 +299,22 @@ public class MainActivity extends AppCompatActivity {
 
             usingVisualRecognition();
         }
+
+        //super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE_PATH) {
+            if (resultCode == RESULT_OK) {
+                String strEditText = data.getStringExtra("editTextValue");
+            }
+        }
+    }
+
+    private void showAndAnalyzeImage() {
+        // Show the captured image in resultImageView.
+        Picasso.with(this)
+                .load(currentPhotoFile)
+                .into(resultImageView);
+
+        usingVisualRecognition();
     }
 
     private void compressTheImage() {
