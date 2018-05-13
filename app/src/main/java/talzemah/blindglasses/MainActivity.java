@@ -36,11 +36,11 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainActivity extends AppCompatActivity {
-
-    /// public static final String EXTRA_MESSAGE = "talzemah.blindglasses.MESSAGE";
 
     private static String TAG = "MainActivity";
 
@@ -57,11 +57,14 @@ public class MainActivity extends AppCompatActivity {
     private ImageView resultImageView;
     private ListView resListView;
     private ProgressBar progressBar;
+    private Timer timer;
 
     private File currentPhotoFile;
     private CustomArrayAdapter customAdapter;
     private ArrayList<Result> resArr;
     private ArrayList<Result> filterResArr;
+
+    private Boolean isFirstClick = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,8 +93,12 @@ public class MainActivity extends AppCompatActivity {
                         enableButtons();
 
                         // Set custom parameters.
+                        // Sets the speech rate.
                         textToSpeech.setSpeechRate(0.7f);
+                        // Sets the speech pitch for the TextToSpeech engine.
                         textToSpeech.setPitch(0.9f);
+                        // Set the utteranceProgressListener.
+                        /// textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
                     }
 
                 } else {
@@ -125,16 +132,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                // Go to camera activity.
-                Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
-                /// String message = "Test message";
-                /// intent.putExtra(EXTRA_MESSAGE, message);
-                startActivityForResult(intent, REQUEST_IMAGE_PATH);
-
-                //takePictureFromCamera(REQUEST_IMAGE_CAPTURE);
-
-                // todo other location.
-                resListView.setAdapter(null);
+                startCameraActivity();
             }
         });
 
@@ -144,14 +142,53 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                takePictureFromCamera(REQUEST_GALLERY);
-
-                // todo other location.
-                resListView.setAdapter(null);
+                /// takePictureFromCamera(REQUEST_GALLERY);
             }
         });
 
+    } // End onCreate.
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Performs the first click automatically for the blind user.
+        if (isFirstClick) {
+            captureImageBtn.performClick();
+            isFirstClick = false;
+            Toast.makeText(this, "onResume + Click", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "onResume", Toast.LENGTH_SHORT).show();
+        }
     }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        if (timer != null)
+            timer.cancel();
+    }
+
+    private void startTimer() {
+
+        timer = new Timer();
+
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+
+                if (!textToSpeech.isSpeaking()) {
+                    timer.cancel();
+                    timer = null;
+                    startCameraActivity();
+                }
+            }
+        };
+
+        timer.schedule(timerTask, 1000, 1000);
+    }
+
 
     private void enableButtons() {
         if (textToSpeech != null && visualRecognition != null) {
@@ -187,6 +224,17 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < filterResArr.size(); i++) {
             textToSpeech.speak(filterResArr.get(i).getname(), TextToSpeech.QUEUE_ADD, null, null);
+        }
+
+        startTimer();
+    }
+
+    private void startCameraActivity() {
+
+        if (progressBar.getVisibility() == View.GONE && timer == null) {
+            // Go to camera activity.
+            Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
+            startActivityForResult(intent, REQUEST_IMAGE_PATH);
         }
     }
 
@@ -264,6 +312,8 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case REQUEST_IMAGE_PATH:
 
+                    deleteOldResults();
+
                     // Update currentPhotoFile path.
                     String path = data.getStringExtra("imagePath");
 
@@ -278,34 +328,11 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
         }
+    }
 
+    private void deleteOldResults() {
 
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-
-            // Show the captured image in resultImageView.
-            Picasso.with(this)
-                    .load(currentPhotoFile)
-                    .into(resultImageView);
-
-            usingVisualRecognition();
-
-            // todo same conditions.
-        } else if (requestCode == REQUEST_GALLERY && resultCode == RESULT_OK) {
-
-            // Show the captured image in resultImageView.
-            Picasso.with(this)
-                    .load(data.getData())
-                    .into(resultImageView);
-
-            usingVisualRecognition();
-        }
-
-        //super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_PATH) {
-            if (resultCode == RESULT_OK) {
-                String strEditText = data.getStringExtra("editTextValue");
-            }
-        }
+        resListView.setAdapter(null);
     }
 
     private void showAndAnalyzeImage() {
@@ -318,6 +345,48 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void compressTheImage() {
+
+    }
+
+    private void usingVisualRecognitionDemo() {
+
+        progressBar.setVisibility(View.VISIBLE);
+
+        resArr.clear();
+
+        resArr.add(new Result("a", 0.9f));
+        resArr.add(new Result("b", 0.8f));
+        resArr.add(new Result("c", 0.7f));
+        resArr.add(new Result("d", 0.6f));
+        resArr.add(new Result("e", 0.5f));
+        resArr.add(new Result("g color", 0.9f));
+        resArr.add(new Result("h color", 0.9f));
+        resArr.add(new Result("i color", 0.9f));
+        resArr.add(new Result("j color", 0.9f));
+
+        // Continue only if there are any results.
+        if (!resArr.isEmpty()) {
+
+            // Performs a set of filters on the results.
+            filterResArr = filter.startFiltering(resArr);
+
+            customAdapter = null;
+            customAdapter = new CustomArrayAdapter(this, R.layout.activity_listview, resArr, filterResArr);
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    // Show the sort result on screen.
+                    resListView.setAdapter(customAdapter);
+
+                    // Speak the relevant results that passed the filter
+                    speak();
+                }
+            });
+        }
+
+        progressBar.setVisibility(View.GONE);
 
     }
 
@@ -374,6 +443,8 @@ public class MainActivity extends AppCompatActivity {
                 });
 
                 Log.e(TAG, e.toString());
+
+                startCameraActivity();
             }
         });
     }

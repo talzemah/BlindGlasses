@@ -26,9 +26,9 @@ import me.aflak.ezcam.EZCamCallback;
 
 public class CameraActivity extends AppCompatActivity {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "CameraActivity";
     private static final int TIME_INTERVAL_BETWEEN_IMAGES = 4000;
-    private static final int FIRST_IMAGE_DELAY = 1000;
+    private static final int FIRST_IMAGE_DELAY = 1500;
 
 
     // EZCam is an Android library that simplifies the use of Camera 2 API.
@@ -46,7 +46,7 @@ public class CameraActivity extends AppCompatActivity {
             //camera.setCaptureSetting(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_NEGATIVE);
 
             camera.startPreview();
-            Toast.makeText(getApplicationContext(), getString(R.string.take_photo_help), Toast.LENGTH_LONG).show();
+            /// Toast.makeText(getApplicationContext(), getString(R.string.take_photo_help), Toast.LENGTH_LONG).show();
         }
 
         @Override
@@ -69,7 +69,6 @@ public class CameraActivity extends AppCompatActivity {
                 refreshGallery(imageFile);
 
                 Log.d(TAG, "Image Saved to: " + imageFile.getAbsolutePath());
-                Toast.makeText(getApplicationContext(), "Image Saved to: " + imageFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
 
             } catch (IOException e) {
 
@@ -96,7 +95,6 @@ public class CameraActivity extends AppCompatActivity {
         public void onCameraDisconnected() {
             // camera disconnected
             Log.e(TAG, "onCameraDisconnected");
-            Toast.makeText(getApplicationContext(), "onCameraDisconnected", Toast.LENGTH_SHORT).show();
         }
     };
 
@@ -115,11 +113,10 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 // Invoke when click on preview.
-                if (camera != null && cameraTimer == null)
-                    takePictureContinuously();
+//                if (camera != null && cameraTimer == null)
+//                    takePictureContinuously();
             }
         });
-
     }
 
     @Override
@@ -127,6 +124,9 @@ public class CameraActivity extends AppCompatActivity {
         super.onResume();
 
         initialCamera();
+
+        if (camera != null && cameraTimer == null)
+            takePictureContinuously();
     }
 
     @Override
@@ -159,7 +159,6 @@ public class CameraActivity extends AppCompatActivity {
         };
 
         cameraTimer.scheduleAtFixedRate(takePictureTask, FIRST_IMAGE_DELAY, TIME_INTERVAL_BETWEEN_IMAGES);
-        Toast.makeText(this, "Timer created", Toast.LENGTH_SHORT).show();
     }
 
     private void initialCamera() {
