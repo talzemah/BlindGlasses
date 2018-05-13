@@ -12,7 +12,6 @@ import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.TextureView;
-import android.view.View;
 import android.widget.Toast;
 
 import java.io.File;
@@ -28,8 +27,7 @@ public class CameraActivity extends AppCompatActivity {
 
     private static final String TAG = "CameraActivity";
     private static final int TIME_INTERVAL_BETWEEN_IMAGES = 4000;
-    private static final int FIRST_IMAGE_DELAY = 1500;
-
+    private static final int FIRST_IMAGE_DELAY = 2000;
 
     // EZCam is an Android library that simplifies the use of Camera 2 API.
     private EZCam camera;
@@ -40,13 +38,12 @@ public class CameraActivity extends AppCompatActivity {
         @Override
         public void onCameraReady() {
             // Set capture settings.
-            camera.setCaptureSetting(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
             //camera.setCaptureSetting(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO);
             //camera.setCaptureSetting(CaptureRequest.COLOR_CORRECTION_ABERRATION_MODE, CameraMetadata.COLOR_CORRECTION_ABERRATION_MODE_HIGH_QUALITY);
             //camera.setCaptureSetting(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_NEGATIVE);
+            camera.setCaptureSetting(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
 
             camera.startPreview();
-            /// Toast.makeText(getApplicationContext(), getString(R.string.take_photo_help), Toast.LENGTH_LONG).show();
         }
 
         @Override
@@ -103,20 +100,7 @@ public class CameraActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
 
-        // Get the Intent that started this activity and extract the string
-        // Intent intent = getIntent();
-        // String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
-        // Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-
         textureView = (TextureView) findViewById(R.id.textureView);
-        textureView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Invoke when click on preview.
-//                if (camera != null && cameraTimer == null)
-//                    takePictureContinuously();
-            }
-        });
     }
 
     @Override
