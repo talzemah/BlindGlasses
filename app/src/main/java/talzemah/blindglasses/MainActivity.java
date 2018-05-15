@@ -30,6 +30,7 @@ import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassResult;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassifiedImages;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassifierResult;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassifyOptions;
+import com.iceteck.silicompressorr.SiliCompressor;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -81,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         // Create VisualRecognition Object.
-        visualRecognition = new VisualRecognition(VisualRecognition.VERSION_DATE_2016_05_20);
+        visualRecognition = new VisualRecognition("2018-03-19");
         visualRecognition.setApiKey(getString(R.string.VisualRecognitionApiKey));
 
         // Create TextToSpeech Object (Android).
@@ -253,16 +254,17 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK) {
 
             switch (requestCode) {
+                // todo delete
                 case REQUEST_IMAGE_CAPTURE:
-
                     showAndAnalyzeImage();
 
                     break;
+                // todo delete
                 case REQUEST_GALLERY:
-
                     showAndAnalyzeImage();
 
                     break;
+
                 case REQUEST_IMAGE_PATH:
 
                     deleteOldResults();
@@ -287,10 +289,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void showAndAnalyzeImage() {
 
-        //File temp = compressImage(currentPhotoFile.getAbsolutePath());
-        //currentPhotoFile = temp;
+//        File temp = compressImage(currentPhotoFile.getAbsolutePath());
+//        currentPhotoFile = temp;
 
-        //compressTheImage();
+        compressImage();
+
+        /// compressImage2();
 
         // Show the captured image in resultImageView.
         Picasso.with(this)
@@ -300,16 +304,16 @@ public class MainActivity extends AppCompatActivity {
         usingVisualRecognition();
     }
 
-    private void compressTheImage() {
-//        String filePath = SiliCompressor.with(getApplicationContext()).compress(currentPhotoFile.getAbsolutePath(), currentPhotoFile.getParentFile(), true);
-//        currentPhotoFile = new File(filePath);
+    private void compressImage2() {
+        String filePath = SiliCompressor.with(getApplicationContext()).compress(currentPhotoFile.getAbsolutePath(), currentPhotoFile.getParentFile(), false);
+        currentPhotoFile = new File(filePath);
     }
 
     private void usingVisualRecognitionDemo() {
 
         progressBar.setVisibility(View.VISIBLE);
 
-        //compressTheImage();
+        //compressImage2();
 
         resArr.clear();
 
@@ -400,7 +404,7 @@ public class MainActivity extends AppCompatActivity {
 
                 Log.e(TAG, e.toString());
 
-                startCameraActivity();
+                /// startCameraActivity();
             }
         });
     }
@@ -462,9 +466,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public File compressImage(String imageUri) {
+    public void compressImage() {
 
-        String filePath = getRealPathFromURI(imageUri);
+        String imagePath = getRealPathFromURI(currentPhotoFile.getAbsolutePath());
         Bitmap scaledBitmap = null;
 
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -472,7 +476,7 @@ public class MainActivity extends AppCompatActivity {
         // by setting this field as true, the actual bitmap pixels are not loaded in the memory. Just the bounds are loaded. If
         // you try the use the bitmap here, you will get null.
         options.inJustDecodeBounds = true;
-        Bitmap bmp = BitmapFactory.decodeFile(filePath, options);
+        Bitmap bmp = BitmapFactory.decodeFile(imagePath, options);
 
         int actualHeight = options.outHeight;
         int actualWidth = options.outWidth;
@@ -513,7 +517,7 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             // load the bitmap from its path
-            bmp = BitmapFactory.decodeFile(filePath, options);
+            bmp = BitmapFactory.decodeFile(imagePath, options);
         } catch (OutOfMemoryError exception) {
             exception.printStackTrace();
 
@@ -539,7 +543,7 @@ public class MainActivity extends AppCompatActivity {
         // check the rotation of the image and display it properly
         ExifInterface exif;
         try {
-            exif = new ExifInterface(filePath);
+            exif = new ExifInterface(imagePath);
 
             int orientation = exif.getAttributeInt(
                     ExifInterface.TAG_ORIENTATION, 0);
@@ -570,13 +574,14 @@ public class MainActivity extends AppCompatActivity {
             out = new FileOutputStream(file);
 
             // write the compressed bitmap at the destination specified by filename.
-            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 80, out);
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
 
-        return file;
+        currentPhotoFile = file;
+        /// return file;
     }
 
     private String getRealPathFromURI(String contentURI) {
@@ -621,7 +626,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Create file name.
-        String fileName = String.format(Locale.ENGLISH, "%d_Comp.jpg", System.currentTimeMillis());
+        String sourceFileName = currentPhotoFile.getName();
+        String fileName = "Comp_" + sourceFileName;
         File file = new File(appDirectory, fileName);
 
         return file;
