@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
     private File currentPhotoFile;
     private CustomArrayAdapter customAdapter;
-    private ArrayList<Result> resArr;
+    private ArrayList<Result> currentResArr;
     private ArrayList<Result> filterResArr;
 
     private Boolean isFirstClick = true;
@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setVisibility(View.GONE);
 
         // Initialize the ArrayList.
-        resArr = new ArrayList<>();
+        currentResArr = new ArrayList<>();
         filterResArr = new ArrayList<>();
 
         // Camera button.
@@ -305,26 +305,26 @@ public class MainActivity extends AppCompatActivity {
 
         //compressImage2();
 
-        resArr.clear();
+        currentResArr.clear();
 
-        resArr.add(new Result("a", 0.9f));
-        resArr.add(new Result("b", 0.8f));
-        resArr.add(new Result("c", 0.7f));
-        resArr.add(new Result("d", 0.6f));
-        resArr.add(new Result("e", 0.5f));
-        resArr.add(new Result("g color", 0.9f));
-        resArr.add(new Result("h color", 0.9f));
-        resArr.add(new Result("i color", 0.9f));
-        resArr.add(new Result("j color", 0.9f));
+        currentResArr.add(new Result("a", 0.9f));
+        currentResArr.add(new Result("b", 0.8f));
+        currentResArr.add(new Result("c", 0.7f));
+        currentResArr.add(new Result("d", 0.6f));
+        currentResArr.add(new Result("e", 0.5f));
+        currentResArr.add(new Result("g color", 0.9f));
+        currentResArr.add(new Result("h color", 0.9f));
+        currentResArr.add(new Result("i color", 0.9f));
+        currentResArr.add(new Result("j color", 0.9f));
 
         // Continue only if there are any results.
-        if (!resArr.isEmpty()) {
+        if (!currentResArr.isEmpty()) {
 
             // Performs a set of filters on the results.
-            filterResArr = filter.startFiltering(resArr);
+            filterResArr = filter.startFiltering(currentResArr);
 
             customAdapter = null;
-            customAdapter = new CustomArrayAdapter(this, R.layout.activity_listview, resArr, filterResArr);
+            customAdapter = new CustomArrayAdapter(this, R.layout.activity_listview, currentResArr, filterResArr);
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -357,22 +357,22 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        // Create custom classifier.
         ClassifyOptions classifyOptions = new ClassifyOptions.Builder()
                 .imagesFile(imagesStream)
                 .imagesFilename(currentPhotoFile.getName())
-                // todo  parameters? 
-                // .parameters("{\"classifier_ids\": [\"fruits_1462128776\", + \"SatelliteModel_6242312846\"]}")
                 .build();
 
         // Asynchronous Request
         visualRecognition.classify(classifyOptions).enqueue(new ServiceCallback<ClassifiedImages>() {
+
             @Override
             public void onResponse(ClassifiedImages response) {
 
+                // Delete last image from device.
                 currentPhotoFile.delete();
 
-                // Here we are in another thread that perform the VR asynchronous request.
-                // Every Change on GUI must made by UI thread.
+                // Here we are in another thread - every Change on GUI must made by UI thread.
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -386,6 +386,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(Exception e) {
 
+                // Delete last image from device.
+                currentPhotoFile.delete();
+
+                // Here we are in another thread - every Change on GUI must made by UI thread.
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -394,7 +398,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-                Log.e(TAG, e.toString());
+                Log.d(TAG, e.toString());
 
                 // todo speak appropriate message.
                 // todo startCameraActivity();
@@ -403,16 +407,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    // Get the result object from VR, sort the element and update the resArr.
+    // Get the result object from VR, sort the element and update the currentResArr.
     @SuppressLint("NewApi")
     private void UpdateAndSortResults(ClassifiedImages result) {
 
+        // Get all results.
         if (result.getImages() != null) {
             List<ClassifierResult> resultClasses = result.getImages().get(0).getClassifiers();
             if (resultClasses.size() > 0) {
                 ClassifierResult classifier = resultClasses.get(0);
                 List<ClassResult> classList = classifier.getClasses();
                 if (classList.size() > 0) {
+                    // Continue only if there is at list one result or more.
 
                     // Sort the results
                     // todo use another way to sort.
@@ -423,24 +429,24 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
 
-                    // Removes all of the elements from resArr.
-                    resArr.clear();
+                    // Delete previous results.
+                    currentResArr.clear();
 
+                    // Update current results.
                     for (int i = 0; i < classList.size(); i++) {
-
-                        // Create a temp result object from each result.
                         Result tempRes = new Result(classList.get(i).getClassName(), classList.get(i).getScore());
-                        resArr.add(tempRes);
+                        currentResArr.add(tempRes);
                     }
 
+                    // todo check if necessary.
                     // Continue only if there are any results.
-                    if (!resArr.isEmpty()) {
+                    if (!currentResArr.isEmpty()) {
 
                         // Performs a set of filters on the results.
-                        filterResArr = filter.startFiltering(resArr);
+                        filterResArr = filter.startFiltering(currentResArr);
 
                         customAdapter = null;
-                        customAdapter = new CustomArrayAdapter(this, R.layout.activity_listview, resArr, filterResArr);
+                        customAdapter = new CustomArrayAdapter(this, R.layout.activity_listview, currentResArr, filterResArr);
 
                         runOnUiThread(new Runnable() {
                             @Override

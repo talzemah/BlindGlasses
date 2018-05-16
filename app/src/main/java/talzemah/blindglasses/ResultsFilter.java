@@ -5,41 +5,46 @@ import java.util.ArrayList;
 public class ResultsFilter {
     //todo  singleton?
 
+    // This score of results are considered reliable enough.
     private static final float QUALITY_THRESHOLD = 0.6f;
+    // Determines the minimum number of results to be taken.
     private static final int MIN_THRESHOLD = 4;
+    // Determines the maximum number of results to be taken.
     private static final int MAX_THRESHOLD = 6;
+    // Determines the maximum color results to be taken.
     private static final int MAX_COLOR_THRESHOLD = 3;
 
 
     private ArrayList<Result> filterResArr;
     private ArrayList<Result> colorResArr;
+    private ArrayList<Result> previousFilterResArr;
+    private ArrayList<Result> previousColorResArr;
 
-
-    protected ResultsFilter() {
+    ResultsFilter() {
 
         filterResArr = new ArrayList<>();
         colorResArr = new ArrayList<>();
+        previousFilterResArr = new ArrayList<>();
+        previousColorResArr = new ArrayList<>();
     }
 
     public ArrayList<Result> startFiltering(ArrayList<Result> resArr) {
 
-        resetFilterResArr();
-
+        preparingArrays();
         filterQualityThreshold(resArr);
         filterMinThreshold(resArr);
         filterMaxThreshold();
-
+        preventDuplicates();
         mergeResultsWithColor();
 
         return filterResArr;
     }
 
+    private void preparingArrays() {
 
-    private void resetFilterResArr() {
         filterResArr.clear();
         colorResArr.clear();
     }
-
 
     private void filterQualityThreshold(ArrayList<Result> resArr) {
 
@@ -53,6 +58,7 @@ public class ResultsFilter {
                 }
 
             } else {
+                // For reasons of efficiency
                 break;
             }
         }
@@ -79,6 +85,49 @@ public class ResultsFilter {
             colorResArr.remove(colorResArr.size() - 1);
         }
 
+    }
+
+    private void preventDuplicates() {
+        ArrayList<Result> tempArr = new ArrayList<>();
+
+        // Compare to previous time.
+        if (!previousFilterResArr.isEmpty()) {
+
+            for (Result res : filterResArr) {
+                if (!previousFilterResArr.contains(res))
+                    tempArr.add(res);
+            }
+
+            // Save all res for next time.
+            previousFilterResArr = (ArrayList<Result>) filterResArr.clone();
+
+
+            filterResArr = (ArrayList<Result>) tempArr.clone();
+            tempArr.clear();
+
+        } else {
+
+            previousFilterResArr = (ArrayList<Result>) filterResArr.clone();
+        }
+
+
+        // Compare to previous time.
+        if (!previousColorResArr.isEmpty()) {
+            for (Result res : colorResArr) {
+                if (!previousColorResArr.contains(res))
+                    tempArr.add(res);
+            }
+
+            // Save all res for next time.
+            previousColorResArr = (ArrayList<Result>) colorResArr.clone();
+
+            colorResArr = (ArrayList<Result>) tempArr.clone();
+            tempArr.clear();
+
+        } else {
+
+            previousColorResArr = (ArrayList<Result>) colorResArr.clone();
+        }
     }
 
     private void mergeResultsWithColor() {

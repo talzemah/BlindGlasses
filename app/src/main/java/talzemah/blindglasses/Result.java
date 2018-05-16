@@ -55,6 +55,6 @@ public class Result {
         Result res = (Result) obj;
 
         // field comparison
-        return Objects.equals(name, res.name) && Objects.equals(score, res.score);
+        return Objects.equals(name, res.name);
     }
 }
