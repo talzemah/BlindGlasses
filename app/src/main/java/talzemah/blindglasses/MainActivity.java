@@ -30,7 +30,6 @@ import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassResult;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassifiedImages;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassifierResult;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassifyOptions;
-import com.iceteck.silicompressorr.SiliCompressor;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -107,8 +106,6 @@ public class MainActivity extends AppCompatActivity {
                         textToSpeech.setSpeechRate(0.7f);
                         // Sets the speech pitch for the TextToSpeech engine.
                         textToSpeech.setPitch(0.9f);
-                        // Set the utteranceProgressListener.
-                        /// textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
                     }
 
                 } else {
@@ -294,19 +291,12 @@ public class MainActivity extends AppCompatActivity {
 
         compressImage();
 
-        /// compressImage2();
-
         // Show the captured image in resultImageView.
         Picasso.with(this)
                 .load(currentPhotoFile)
                 .into(resultImageView);
 
         usingVisualRecognition();
-    }
-
-    private void compressImage2() {
-        String filePath = SiliCompressor.with(getApplicationContext()).compress(currentPhotoFile.getAbsolutePath(), currentPhotoFile.getParentFile(), false);
-        currentPhotoFile = new File(filePath);
     }
 
     private void usingVisualRecognitionDemo() {
@@ -379,6 +369,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(ClassifiedImages response) {
 
+                currentPhotoFile.delete();
+
                 // Here we are in another thread that perform the VR asynchronous request.
                 // Every Change on GUI must made by UI thread.
                 runOnUiThread(new Runnable() {
@@ -404,7 +396,8 @@ public class MainActivity extends AppCompatActivity {
 
                 Log.e(TAG, e.toString());
 
-                /// startCameraActivity();
+                // todo speak appropriate message.
+                // todo startCameraActivity();
             }
         });
     }
@@ -580,8 +573,11 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        currentPhotoFile.delete();
+
         currentPhotoFile = file;
-        /// return file;
+        refreshGallery(currentPhotoFile);
+        // todo boolean?
     }
 
     private String getRealPathFromURI(String contentURI) {
@@ -631,6 +627,15 @@ public class MainActivity extends AppCompatActivity {
         File file = new File(appDirectory, fileName);
 
         return file;
+    }
+
+    // Show the capture image in gallery.
+    private void refreshGallery(File file) {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        mediaScanIntent.setData(Uri.fromFile(file));
+        sendBroadcast(mediaScanIntent);
+
+        Log.d(TAG, "Image added to gallery");
     }
 
 } // End MainActivity
