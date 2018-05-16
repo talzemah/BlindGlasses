@@ -39,7 +39,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
@@ -54,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_GALLERY = 2;
     private static final int REQUEST_IMAGE_PATH = 3;
 
+    private static final int TIME_BETWEEN_CAPTURES = 15;
+
     private VisualRecognition visualRecognition;
     private TextToSpeech textToSpeech;
     private ResultsFilter filter;
@@ -64,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView resListView;
     private ProgressBar progressBar;
     private Timer timer;
+    private Date captureTime;
 
     private File currentPhotoFile;
     private CustomArrayAdapter customAdapter;
@@ -182,7 +187,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
 
-                if (!textToSpeech.isSpeaking()) {
+                // Calculate elapsed time in seconds.
+                Date currentTime = Calendar.getInstance().getTime();
+                int elapsedTime = (int) ((currentTime.getTime() - captureTime.getTime()) / 1000);
+
+                if (!textToSpeech.isSpeaking() && elapsedTime > TIME_BETWEEN_CAPTURES) {
                     timer.cancel();
                     timer = null;
                     startCameraActivity();
@@ -263,6 +272,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
 
                 case REQUEST_IMAGE_PATH:
+
+                    // Get current time to measure time between image samples.
+                    captureTime = Calendar.getInstance().getTime();
 
                     deleteOldResults();
 
