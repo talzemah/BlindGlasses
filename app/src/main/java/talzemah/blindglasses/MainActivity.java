@@ -1,7 +1,9 @@
 package talzemah.blindglasses;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,10 +12,13 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.speech.tts.TextToSpeech;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -56,7 +61,13 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_GALLERY = 2;
     private static final int REQUEST_IMAGE_PATH = 3;
 
-    private static final int TIME_BETWEEN_CAPTURES = 15;
+    private static final int TIME_BETWEEN_CAPTURES = 10;
+
+    private static final int PERMISSIONS_REQUEST_CAMERA_AND_STORAGE = 3;
+    private String[] permissions = {
+            Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
 
     private VisualRecognition visualRecognition;
     private TextToSpeech textToSpeech;
@@ -87,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Create VisualRecognition Object.
         visualRecognition = new VisualRecognition("2018-03-19");
-        visualRecognition.setApiKey(getString(R.string.VisualRecognitionApiKey));
+        visualRecognition.setApiKey(getString(R.string.VisualRecognitionApiKey2));
 
         // Create TextToSpeech Object (Android).
         textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
@@ -242,15 +253,39 @@ public class MainActivity extends AppCompatActivity {
         startTimer();
     }
 
+
     private void startCameraActivity() {
 
-        if (progressBar.getVisibility() == View.GONE && timer == null) {
-            // Go to camera activity.
-            Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
-            startActivityForResult(intent, REQUEST_IMAGE_PATH);
+
+        if (!allPermissionsGranted()) {
+
+            ActivityCompat.requestPermissions(this, permissions, PERMISSIONS_REQUEST_CAMERA_AND_STORAGE);
+
+        } else {
+
+            if (progressBar.getVisibility() == View.GONE && timer == null) {
+                // Go to camera activity.
+                Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
+                startActivityForResult(intent, REQUEST_IMAGE_PATH);
+            }
         }
     }
 
+    private boolean allPermissionsGranted() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && permissions != null) {
+            for (String permission : permissions) {
+                if (ContextCompat.checkSelfPermission(getApplicationContext(), permission) != PackageManager.PERMISSION_GRANTED) {
+
+                    // At least one permission is not granted.
+                    return false;
+                }
+            }
+        }
+
+        // All permissions has already been granted.
+        return true;
+    }
 
     // Invoke When user come back from camera to the application.
     @Override
@@ -654,6 +689,34 @@ public class MainActivity extends AppCompatActivity {
         sendBroadcast(mediaScanIntent);
 
         Log.d(TAG, "Image added to gallery");
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_CAMERA_AND_STORAGE:
+
+                if (allPermissionsGranted()) {
+
+                    if (progressBar.getVisibility() == View.GONE && timer == null) {
+                        // Go to camera activity.
+                        Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
+                        startActivityForResult(intent, REQUEST_IMAGE_PATH);
+                    }
+
+                } else {
+
+                    // Permission/s denied.
+                    Toast.makeText(this, "The app can not work without camera and storage permissions", Toast.LENGTH_LONG).show();
+
+                }
+                break;
+
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                break;
+        }
     }
 
 } // End MainActivity

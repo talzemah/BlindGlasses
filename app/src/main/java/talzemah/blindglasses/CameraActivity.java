@@ -26,8 +26,8 @@ import me.aflak.ezcam.EZCamCallback;
 public class CameraActivity extends AppCompatActivity {
 
     private static final String TAG = "CameraActivity";
-    private static final int TIME_INTERVAL_BETWEEN_IMAGES = 4000;
-    private static final int FIRST_IMAGE_DELAY = 2000;
+
+    private static final int CAPTURE_IMAGE_DELAY = 2000;
 
     // EZCam is an Android library that simplifies the use of Camera 2 API.
     private EZCam camera;
@@ -38,6 +38,7 @@ public class CameraActivity extends AppCompatActivity {
         @Override
         public void onCameraReady() {
             // Set capture settings.
+            // todo change or delete
             //camera.setCaptureSetting(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO);
             //camera.setCaptureSetting(CaptureRequest.COLOR_CORRECTION_ABERRATION_MODE, CameraMetadata.COLOR_CORRECTION_ABERRATION_MODE_HIGH_QUALITY);
             //camera.setCaptureSetting(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_NEGATIVE);
@@ -53,11 +54,12 @@ public class CameraActivity extends AppCompatActivity {
             // Create directory.
             File externalStorageDirectory = Environment.getExternalStorageDirectory();
             File appDirectory = new File(externalStorageDirectory.getAbsolutePath() + "/BlindGlasses");
-            appDirectory.mkdirs();
+
+            if (!appDirectory.isDirectory())
+                appDirectory.mkdirs();
 
             // Create file name.
             String fileName = String.format(Locale.ENGLISH, "%d.jpg", System.currentTimeMillis());
-
             File imageFile = new File(appDirectory, fileName);
 
             try {
@@ -72,20 +74,18 @@ public class CameraActivity extends AppCompatActivity {
                 Log.e(TAG, e.toString());
                 e.printStackTrace();
 
-            } finally {
-
-                Intent intent = new Intent();
-                intent.putExtra("imagePath", imageFile.getAbsolutePath());
-                setResult(RESULT_OK, intent);
-                finish();
-
             }
+
+            // todo always ok?
+            Intent intent = new Intent();
+            intent.putExtra("imagePath", imageFile.getAbsolutePath());
+            setResult(imageFile.exists() ? RESULT_OK : RESULT_CANCELED, intent);
+            finish();
         }
 
         @Override
         public void onError(String message) {
             // all errors will be passed through this methods
-            Log.e(TAG, "onError\n" + message);
         }
 
         @Override
@@ -134,15 +134,16 @@ public class CameraActivity extends AppCompatActivity {
     private void takePictureContinuously() {
         cameraTimer = new Timer();
 
-        TimerTask takePictureTask = new TimerTask() {
+        final TimerTask takePictureTask = new TimerTask() {
             @Override
             public void run() {
                 if (camera != null && cameraId != null)
+
                     camera.takePicture();
             }
         };
 
-        cameraTimer.scheduleAtFixedRate(takePictureTask, FIRST_IMAGE_DELAY, TIME_INTERVAL_BETWEEN_IMAGES);
+        cameraTimer.schedule(takePictureTask, CAPTURE_IMAGE_DELAY);
     }
 
     private void initialCamera() {
@@ -174,4 +175,4 @@ public class CameraActivity extends AppCompatActivity {
         Log.d(TAG, "Image added to gallery");
     }
 
-}
+} // End Activity.
