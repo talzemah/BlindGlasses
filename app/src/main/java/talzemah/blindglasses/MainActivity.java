@@ -1,7 +1,6 @@
 package talzemah.blindglasses;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -45,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -55,16 +55,18 @@ import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static String TAG = "MainActivity";
+    private static final String TAG = "MainActivity";
 
-    private static final int TIME_BETWEEN_CAPTURES = 10;
+    // The minimum time between sampling images.
+    private static final int TIME_BETWEEN_CAPTURES = 20;
+
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int PERMISSIONS_REQUEST_CAMERA_AND_STORAGE = 3;
 
+    // Mandatory permissions for application functionality.
     private String[] permissions = {
             Manifest.permission.CAMERA,
             Manifest.permission.WRITE_EXTERNAL_STORAGE};
-
 
     private VisualRecognition visualRecognition;
     private TextToSpeech textToSpeech;
@@ -83,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Result> currentResArr;
     private ArrayList<Result> filterResArr;
 
+    // In order to automatically press the button for the blind.
     private Boolean isFirstClick = true;
 
     @Override
@@ -135,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
         // ImageView to show the captured image.
         resultImageView = (ImageView) findViewById(R.id.imageView_result);
 
-        // Show the results.
+        // ListView to show the results.
         resListView = (ListView) findViewById(R.id.ListView_results);
 
         // Progress Bar.
@@ -396,7 +399,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Create custom classifier.
-        ClassifyOptions classifyOptions = new ClassifyOptions.Builder()
+        final ClassifyOptions classifyOptions = new ClassifyOptions.Builder()
                 .imagesFile(imagesStream)
                 .imagesFilename(currentPhotoFile.getName())
                 .build();
@@ -439,15 +442,12 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, e.toString());
 
                 speak("Error while processing the image, retrying.");
-                // todo speak appropriate message.
-                // todo startCameraActivity();
             }
         });
     }
 
 
     // Get the result object from VR, sort the element and update the currentResArr.
-    @SuppressLint("NewApi")
     private void ProcessingResultsBeforeSpeak(ClassifiedImages result) {
 
         // Get all results.
@@ -460,8 +460,7 @@ public class MainActivity extends AppCompatActivity {
                     // Continue only if there is at list one result or more.
 
                     // Sort the results
-                    // todo use another way to sort.
-                    classList.sort(new Comparator<ClassResult>() {
+                    Collections.sort(classList, new Comparator<ClassResult>() {
                         @Override
                         public int compare(ClassResult o1, ClassResult o2) {
                             return -(o1.getScore().compareTo(o2.getScore()));
@@ -477,28 +476,24 @@ public class MainActivity extends AppCompatActivity {
                         currentResArr.add(tempRes);
                     }
 
-                    // todo check if necessary.
-                    // Continue only if there are any results.
-                    if (!currentResArr.isEmpty()) {
+                    // Performs a set of filters on the results.
+                    filterResArr = filter.startFiltering(currentResArr);
 
-                        // Performs a set of filters on the results.
-                        filterResArr = filter.startFiltering(currentResArr);
+                    // Update adapter content.
+                    customAdapter = null;
+                    customAdapter = new CustomArrayAdapter(this, R.layout.activity_listview, currentResArr, filterResArr);
 
-                        customAdapter = null;
-                        customAdapter = new CustomArrayAdapter(this, R.layout.activity_listview, currentResArr, filterResArr);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
 
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
+                            // Show the sort result on screen.
+                            resListView.setAdapter(customAdapter);
 
-                                // Show the sort result on screen.
-                                resListView.setAdapter(customAdapter);
-
-                                // Speak the relevant results that passed the filter
-                                speak(null);
-                            }
-                        });
-                    }
+                            // Speak the relevant results that passed the filter
+                            speak(null);
+                        }
+                    });
                 }
             }
         }
@@ -622,7 +617,6 @@ public class MainActivity extends AppCompatActivity {
 
         currentPhotoFile = file;
         refreshGallery(currentPhotoFile);
-        // todo boolean?
     }
 
     private String getRealPathFromURI(String contentURI) {

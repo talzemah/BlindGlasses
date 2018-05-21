@@ -74,18 +74,23 @@ public class CameraActivity extends AppCompatActivity {
                 Log.e(TAG, e.toString());
                 e.printStackTrace();
 
-            }
+            } finally {
 
-            // todo always ok?
-            Intent intent = new Intent();
-            intent.putExtra("imagePath", imageFile.getAbsolutePath());
-            setResult(imageFile.exists() ? RESULT_OK : RESULT_CANCELED, intent);
-            finish();
+                Intent intent = new Intent();
+                if (imageFile != null)
+                    intent.putExtra("imagePath", imageFile.getAbsolutePath());
+                setResult(imageFile.exists() ? RESULT_OK : RESULT_CANCELED, intent);
+                finish();
+            }
         }
 
         @Override
         public void onError(String message) {
             // all errors will be passed through this methods
+
+            Intent intent = new Intent();
+            setResult(RESULT_CANCELED, intent);
+            finish();
         }
 
         @Override
