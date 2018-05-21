@@ -57,13 +57,10 @@ public class MainActivity extends AppCompatActivity {
 
     private static String TAG = "MainActivity";
 
-    private static final int REQUEST_IMAGE_CAPTURE = 1;
-    private static final int REQUEST_GALLERY = 2;
-    private static final int REQUEST_IMAGE_PATH = 3;
-
     private static final int TIME_BETWEEN_CAPTURES = 10;
-
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int PERMISSIONS_REQUEST_CAMERA_AND_STORAGE = 3;
+
     private String[] permissions = {
             Manifest.permission.CAMERA,
             Manifest.permission.WRITE_EXTERNAL_STORAGE};
@@ -98,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Create VisualRecognition Object.
         visualRecognition = new VisualRecognition("2018-03-19");
-        visualRecognition.setApiKey(getString(R.string.VisualRecognitionApiKey2));
+        visualRecognition.setApiKey(getString(R.string.VisualRecognitionApiKey));
 
         // Create TextToSpeech Object (Android).
         textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
@@ -165,7 +162,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                /// takePictureFromCamera(REQUEST_GALLERY);
             }
         });
 
@@ -244,12 +240,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // speak the final results after sort and filtering.
-    private void speak() {
+    private void speak(String error) {
 
-        for (int i = 0; i < filterResArr.size(); i++) {
-            textToSpeech.speak(filterResArr.get(i).getname(), TextToSpeech.QUEUE_ADD, null, null);
+        if (error != null) {
+            textToSpeech.speak(error, TextToSpeech.QUEUE_ADD, null, null);
+        } else {
+            for (int i = 0; i < filterResArr.size(); i++) {
+                textToSpeech.speak(filterResArr.get(i).getname(), TextToSpeech.QUEUE_ADD, null, null);
+            }
         }
-
         startTimer();
     }
 
@@ -266,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
             if (progressBar.getVisibility() == View.GONE && timer == null) {
                 // Go to camera activity.
                 Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
-                startActivityForResult(intent, REQUEST_IMAGE_PATH);
+                startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
             }
         }
     }
@@ -287,26 +286,15 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    // Invoke When user come back from camera to the application.
+    // Invoke When user come back from other activity.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        // Make sure there is no some problem.
-        if (resultCode == RESULT_OK) {
+        switch (requestCode) {
+            case REQUEST_IMAGE_CAPTURE:
 
-            switch (requestCode) {
-                // todo delete
-                case REQUEST_IMAGE_CAPTURE:
-                    showAndAnalyzeImage();
-
-                    break;
-                // todo delete
-                case REQUEST_GALLERY:
-                    showAndAnalyzeImage();
-
-                    break;
-
-                case REQUEST_IMAGE_PATH:
+                // Make sure there is no some problem.
+                if (resultCode == RESULT_OK) {
 
                     // Get current time to measure time between image samples.
                     captureTime = Calendar.getInstance().getTime();
@@ -321,8 +309,11 @@ public class MainActivity extends AppCompatActivity {
                         showAndAnalyzeImage();
                     }
 
-                    break;
-            }
+                } else {
+
+                    startCameraActivity();
+                }
+                break;
         }
     }
 
@@ -381,7 +372,7 @@ public class MainActivity extends AppCompatActivity {
                     resListView.setAdapter(customAdapter);
 
                     // Speak the relevant results that passed the filter
-                    speak();
+                    speak(null);
                 }
             });
         }
@@ -427,7 +418,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-                UpdateAndSortResults(response);
+                ProcessingResultsBeforeSpeak(response);
             }
 
             @Override
@@ -447,6 +438,7 @@ public class MainActivity extends AppCompatActivity {
 
                 Log.d(TAG, e.toString());
 
+                speak("Error while processing the image, retrying.");
                 // todo speak appropriate message.
                 // todo startCameraActivity();
             }
@@ -456,7 +448,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Get the result object from VR, sort the element and update the currentResArr.
     @SuppressLint("NewApi")
-    private void UpdateAndSortResults(ClassifiedImages result) {
+    private void ProcessingResultsBeforeSpeak(ClassifiedImages result) {
 
         // Get all results.
         if (result.getImages() != null) {
@@ -503,7 +495,7 @@ public class MainActivity extends AppCompatActivity {
                                 resListView.setAdapter(customAdapter);
 
                                 // Speak the relevant results that passed the filter
-                                speak();
+                                speak(null);
                             }
                         });
                     }
@@ -702,7 +694,7 @@ public class MainActivity extends AppCompatActivity {
                     if (progressBar.getVisibility() == View.GONE && timer == null) {
                         // Go to camera activity.
                         Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
-                        startActivityForResult(intent, REQUEST_IMAGE_PATH);
+                        startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
                     }
 
                 } else {
