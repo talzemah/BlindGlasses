@@ -329,9 +329,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showAndAnalyzeImage() {
 
-//        File temp = compressImage(currentPhotoFile.getAbsolutePath());
-//        currentPhotoFile = temp;
-
+        // Compress the image.
         compressImage();
 
         // Show the captured image in resultImageView.
