@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
         filterResArr = new ArrayList<>();
 
         // Camera button.
-        startBtn = (Button) findViewById(R.id.Btn_CaptureImage);
+        startBtn = (Button) findViewById(R.id.Btn_Start);
         startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
