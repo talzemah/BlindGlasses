@@ -32,7 +32,7 @@ public class CustomArrayAdapter extends ArrayAdapter<String> {
 
 
         for (int i = 0; i < arr.length; i++) {
-            arr[i] = resArr.get(i).getname() + " " + resArr.get(i).getscore();
+            arr[i] = resArr.get(i).getName() + " " + resArr.get(i).getScore();
         }
 
         return arr;
@@ -49,7 +49,7 @@ public class CustomArrayAdapter extends ArrayAdapter<String> {
         TextView label = (TextView) row.findViewById(R.id.rowTextView);
         ImageView icon = (ImageView) row.findViewById(R.id.icon);
 
-        label.setText(resArr.get(position).getname() + " " + resArr.get(position).getscore());
+        label.setText(resArr.get(position).getName() + " " + resArr.get(position).getScore());
 
 
         if (filterResArr.contains(resArr.get(position))) {

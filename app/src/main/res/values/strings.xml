@@ -4,8 +4,8 @@
     <string name="result_image_view_description">Displays the captured image</string>
 
     <!--Buttons-->
-    <string name="btn_select_image">Select image</string>
-    <string name="btn_capture_image">Capture image</string>
+    <string name="btn_Settings">Settings</string>
+    <string name="btn_Start">Start</string>
 
     <!--Toast messages-->
     <string name="rear_camera_not_found">Rear camera not found on device</string>

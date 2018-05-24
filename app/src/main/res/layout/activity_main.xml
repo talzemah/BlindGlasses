@@ -15,7 +15,7 @@
         android:layout_margin="5dp"
         android:contentDescription="@string/result_image_view_description"
         android:padding="5dp"
-        app:layout_constraintBottom_toTopOf="@+id/Btn_SelectImage"
+        app:layout_constraintBottom_toTopOf="@+id/Btn_Settings"
         app:layout_constraintHeight_default="spread"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -23,12 +23,12 @@
         app:srcCompat="@android:color/transparent" />
 
     <Button
-        android:id="@+id/Btn_SelectImage"
+        android:id="@+id/Btn_Settings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:enabled="false"
-        android:text="@string/btn_select_image"
+        android:text="@string/btn_Settings"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageView_result" />
 
@@ -36,17 +36,19 @@
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintLeft_toRightOf="@+id/Btn_SelectImage"
-        app:layout_constraintRight_toLeftOf="@+id/Btn_CaptureImage"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintEnd_toEndOf="@+id/Btn_Start"
+        app:layout_constraintStart_toStartOf="@+id/Btn_Settings"
         app:layout_constraintTop_toBottomOf="@id/imageView_result" />
 
     <Button
-        android:id="@+id/Btn_CaptureImage"
+        android:id="@+id/Btn_Start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="8dp"
         android:enabled="false"
-        android:text="@string/btn_capture_image"
+        android:text="@string/btn_Start"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageView_result"
         tools:enabled="false" />
@@ -60,7 +62,7 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/Btn_SelectImage"
+        app:layout_constraintTop_toBottomOf="@+id/Btn_Settings"
         app:layout_constraintVertical_bias="1.0" />
 
 </android.support.constraint.ConstraintLayout>

@@ -44,8 +44,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -58,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     // The minimum time between sampling images.
-    private static final int TIME_BETWEEN_CAPTURES = 20;
+    private static final int TIME_BETWEEN_CAPTURES = 10;
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int PERMISSIONS_REQUEST_CAMERA_AND_STORAGE = 3;
@@ -72,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
     private TextToSpeech textToSpeech;
     private ResultsFilter filter;
 
-    private Button captureImageBtn;
-    private Button selectImageBtn;
+    private Button startBtn;
+    private Button settingsBtn;
     private ImageView resultImageView;
     private ListView resListView;
     private ProgressBar progressBar;
@@ -150,8 +148,8 @@ public class MainActivity extends AppCompatActivity {
         filterResArr = new ArrayList<>();
 
         // Camera button.
-        captureImageBtn = (Button) findViewById(R.id.Btn_CaptureImage);
-        captureImageBtn.setOnClickListener(new View.OnClickListener() {
+        startBtn = (Button) findViewById(R.id.Btn_CaptureImage);
+        startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -160,10 +158,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Gallery Button.
-        selectImageBtn = (Button) findViewById(R.id.Btn_SelectImage);
-        selectImageBtn.setOnClickListener(new View.OnClickListener() {
+        settingsBtn = (Button) findViewById(R.id.Btn_Settings);
+        settingsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                // Go to settings activity.
+                Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
+                startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
 
             }
         });
@@ -176,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Performs the first click automatically for the blind user.
         if (isFirstClick) {
-            captureImageBtn.performClick();
+            startBtn.performClick();
             isFirstClick = false;
         }
     }
@@ -215,8 +217,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void enableButtons() {
         if (textToSpeech != null && visualRecognition != null) {
-            captureImageBtn.setEnabled(true);
-            selectImageBtn.setEnabled(true);
+            startBtn.setEnabled(true);
+            settingsBtn.setEnabled(true);
         }
     }
 
@@ -249,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
             textToSpeech.speak(error, TextToSpeech.QUEUE_ADD, null, null);
         } else {
             for (int i = 0; i < filterResArr.size(); i++) {
-                textToSpeech.speak(filterResArr.get(i).getname(), TextToSpeech.QUEUE_ADD, null, null);
+                textToSpeech.speak(filterResArr.get(i).getName(), TextToSpeech.QUEUE_ADD, null, null);
             }
         }
         startTimer();
@@ -460,12 +462,7 @@ public class MainActivity extends AppCompatActivity {
                     // Continue only if there is at list one result or more.
 
                     // Sort the results
-                    Collections.sort(classList, new Comparator<ClassResult>() {
-                        @Override
-                        public int compare(ClassResult o1, ClassResult o2) {
-                            return -(o1.getScore().compareTo(o2.getScore()));
-                        }
-                    });
+                    classList = filter.sortResults(classList);
 
                     // Delete previous results.
                     currentResArr.clear();

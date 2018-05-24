@@ -4,8 +4,8 @@ import java.util.Objects;
 
 public class Result {
 
-    String name;
-    float score;
+    private String name;
+    private float score;
 
     public Result() {
     }
@@ -15,21 +15,17 @@ public class Result {
         this.score = score;
     }
 
-    public String getname() {
+    public String getName() {
         return name;
     }
 
-    public float getscore() {
+    public float getScore() {
         return score;
     }
 
     public void setname(String name) {
 
         this.name = name;
-    }
-
-    public void setscore(float score) {
-        this.score = score;
     }
 
     @Override
@@ -57,4 +53,5 @@ public class Result {
         // field comparison
         return Objects.equals(name, res.name);
     }
+
 }

@@ -1,6 +1,11 @@
 package talzemah.blindglasses;
 
+import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassResult;
+
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class ResultsFilter {
 
@@ -41,6 +46,34 @@ public class ResultsFilter {
         return filterResArr;
     }
 
+    public List<ClassResult> sortResults(List<ClassResult> classList) {
+
+        Collections.sort(classList, new Comparator<ClassResult>() {
+            @Override
+            public int compare(ClassResult o1, ClassResult o2) {
+                return -(o1.getScore().compareTo(o2.getScore()));
+            }
+        });
+
+        return classList;
+    }
+
+//    private void sortResults(ArrayList<Result> resArr) {
+//
+//        // Sort the results
+//        Collections.sort(resArr, new Comparator<Result>() {
+//            @Override
+//            public int compare(Result r1, Result r2) {
+//
+//                Double d1 = (double) r1.getScore();
+//                Double d2 = (double) r1.getScore();
+//
+//                return -(d1.compareTo(d2));
+//            }
+//        });
+//
+//    }
+
     private void preparingArrays() {
 
         filterResArr.clear();
@@ -50,9 +83,9 @@ public class ResultsFilter {
     private void filterQualityThreshold(ArrayList<Result> resArr) {
 
         for (int i = 0; i < resArr.size(); i++) {
-            if (resArr.get(i).score >= QUALITY_THRESHOLD) {
+            if (resArr.get(i).getScore() >= QUALITY_THRESHOLD) {
 
-                if (resArr.get(i).name.contains("color")) {
+                if (resArr.get(i).getName().contains("color")) {
                     colorResArr.add(resArr.get(i));
                 } else {
                     filterResArr.add(resArr.get(i));
@@ -69,7 +102,7 @@ public class ResultsFilter {
 
         for (int i = filterResArr.size() + colorResArr.size(); (filterResArr.size() < MIN_THRESHOLD) && resArr.size() > i; i++) {
 
-            if (!resArr.get(i).name.contains("color")) {
+            if (!resArr.get(i).getName().contains("color")) {
                 filterResArr.add(resArr.get(i));
             }
         }
