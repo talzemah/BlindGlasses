@@ -9,8 +9,6 @@ import java.util.List;
 
 public class ResultsFilter {
 
-    private static final String TAG = "ResultsFilter";
-
     // This score of results are considered reliable enough.
     private static final float QUALITY_THRESHOLD = 0.6f;
     // Determines the minimum number of results to be taken.
