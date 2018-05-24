@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -344,7 +345,7 @@ public class MainActivity extends AppCompatActivity {
 
         progressBar.setVisibility(View.VISIBLE);
 
-        //compressImage2();
+        /// compressImage();
 
         currentResArr.clear();
 
@@ -538,9 +539,7 @@ public class MainActivity extends AppCompatActivity {
         // inJustDecodeBounds set to false to load the actual bitmap
         options.inJustDecodeBounds = false;
 
-        // this options allow android to claim the bitmap memory if it runs low on memory
-        options.inPurgeable = true;
-        options.inInputShareable = true;
+        // Temp storage to use for decoding.
         options.inTempStorage = new byte[16 * 1024];
 
         try {
@@ -564,9 +563,11 @@ public class MainActivity extends AppCompatActivity {
         Matrix scaleMatrix = new Matrix();
         scaleMatrix.setScale(ratioX, ratioY, middleX, middleY);
 
-        Canvas canvas = new Canvas(scaledBitmap);
-        canvas.setMatrix(scaleMatrix);
-        canvas.drawBitmap(bmp, middleX - bmp.getWidth() / 2, middleY - bmp.getHeight() / 2, new Paint(Paint.FILTER_BITMAP_FLAG));
+        if (scaledBitmap != null) {
+            Canvas canvas = new Canvas(scaledBitmap);
+            canvas.setMatrix(scaleMatrix);
+            canvas.drawBitmap(bmp, middleX - bmp.getWidth() / 2, middleY - bmp.getHeight() / 2, new Paint(Paint.FILTER_BITMAP_FLAG));
+        }
 
         // check the rotation of the image and display it properly
         ExifInterface exif;
@@ -596,7 +597,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        FileOutputStream out = null;
+        FileOutputStream out;
         File file = getFilename();
         try {
             out = new FileOutputStream(file);
@@ -620,8 +621,11 @@ public class MainActivity extends AppCompatActivity {
         Cursor cursor = getContentResolver().query(contentUri, null, null, null, null);
 
         if (cursor == null) {
+
             return contentUri.getPath();
+
         } else {
+
             cursor.moveToFirst();
             int index = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
             return cursor.getString(index);
@@ -673,7 +677,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
 
         switch (requestCode) {
             case PERMISSIONS_REQUEST_CAMERA_AND_STORAGE:
