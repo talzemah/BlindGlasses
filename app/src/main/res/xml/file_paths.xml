@@ -2,6 +2,7 @@
 
 <paths>
 
+    <!--todo delete-->
     <external-path
         name="my_images"
         path="Android/data/talzemah.blindglasses/files/Pictures" />

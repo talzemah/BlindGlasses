@@ -2,6 +2,7 @@ package talzemah.blindglasses;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -14,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
@@ -59,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     // The minimum time between sampling images.
     private static final int TIME_BETWEEN_CAPTURES = 10;
 
+    // Codes to identify return request.
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int PERMISSIONS_REQUEST_CAMERA_AND_STORAGE = 3;
 
@@ -84,8 +87,14 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Result> currentResArr;
     private ArrayList<Result> filterResArr;
 
+    // Shared preferences.
+    private SharedPreferences preferences;
+
     // In order to automatically press the button for the blind.
     private Boolean isFirstClick = true;
+
+    // Preference.
+    private boolean isAutoMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,10 +173,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                // Go to settings activity.
-                Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
-                startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+                // Delete old information.
+                if (timer != null) {
+                    timer.cancel();
+                    timer = null;
+                }
 
+                deleteOldInfo();
+
+                // Go to settings activity.
+                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -177,11 +193,54 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        // Performs the first click automatically for the blind user.
+        UpdatePreferencesValues();
+        shouldWorkAutomatically();
+    }
+
+    private void UpdatePreferencesValues() {
+
+        preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        // Image capture.
+        isAutoMode = preferences.getBoolean("auto_capture_switch", true);
+        /// Toast.makeText(this, "isFirstClick = " + isFirstClick + "\nisAutoMode = " + isAutoMode, Toast.LENGTH_SHORT).show();
+
+
+    }
+
+    private void shouldWorkAutomatically() {
+
+        // Checks whether to work automatically according to the selected settings.
         if (isFirstClick) {
-            startBtn.performClick();
+            if (isAutoMode) {
+                startBtn.performClick();
+            }
             isFirstClick = false;
+        } else {
+            if (isAutoMode) {
+                if (timer == null) {
+                    startBtn.performClick();
+                }
+            } else {
+                if (timer != null) {
+                    timer.cancel();
+                    timer = null;
+
+                    deleteOldInfo();
+                }
+            }
         }
+    }
+
+    private void deleteOldInfo() {
+
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+        }
+
+        resultImageView.setImageDrawable(null);
+        progressBar.setVisibility(View.GONE);
+        resListView.setAdapter(null);
     }
 
     @Override
@@ -226,6 +285,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+
         // Stop speech when App is going into the background.
         if (textToSpeech != null) {
             textToSpeech.stop();

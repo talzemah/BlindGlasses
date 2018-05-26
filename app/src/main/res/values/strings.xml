@@ -11,7 +11,22 @@
     <string name="rear_camera_not_found">Rear camera not found on device</string>
     <string name="title_activity_settings">Settings</string>
 
-    <!-- Strings related to Settings -->
+
+    <!-- Settings section -->
+    <!--Image capture settings-->
+    <string name="pref_header_image_capture">Image Capture</string>
+
+    <string name="pref_title_auto_capture">Enable automatic capture</string>
+    <string name="pref_description_auto_capture">Makes the app run automatically for blind people</string>
+
+
+    <!--Text to speech settings-->
+    <string name="pref_header_text_to_speech">Text To Speech</string>
+
+
+    <!--Filters settings-->
+    <string name="pref_header_filters">Filters</string>
+
 
     <!-- Example General settings -->
     <string name="pref_header_general">General</string>
