@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     // The minimum time between sampling images.
-    private static final int TIME_BETWEEN_CAPTURES = 10;
+    private static int TIME_BETWEEN_CAPTURES = 10;
 
     // Codes to identify return request.
     private static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -202,9 +202,11 @@ public class MainActivity extends AppCompatActivity {
         preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         // Image capture.
-        isAutoMode = preferences.getBoolean("auto_capture_switch", true);
-        /// Toast.makeText(this, "isFirstClick = " + isFirstClick + "\nisAutoMode = " + isAutoMode, Toast.LENGTH_SHORT).show();
+        isAutoMode = preferences.getBoolean("auto_capture_switch", false);
 
+        // capture frequency.
+        String str = preferences.getString("capture_frequency", "60");
+        TIME_BETWEEN_CAPTURES = Integer.valueOf(str);
 
     }
 
@@ -253,27 +255,31 @@ public class MainActivity extends AppCompatActivity {
 
     private void startTimer() {
 
-        timer = new Timer();
+        // todo is needed?
+        if (timer == null) {
+            timer = new Timer();
 
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
 
-                // Calculate elapsed time in seconds.
-                Date currentTime = Calendar.getInstance().getTime();
-                int elapsedTime = (int) ((currentTime.getTime() - captureTime.getTime()) / 1000);
+                    // Calculate elapsed time in seconds.
+                    Date currentTime = Calendar.getInstance().getTime();
+                    int elapsedTime = (int) ((currentTime.getTime() - captureTime.getTime()) / 1000);
 
-                if (!textToSpeech.isSpeaking() && elapsedTime > TIME_BETWEEN_CAPTURES) {
-                    timer.cancel();
-                    timer = null;
-                    startCameraActivity();
+                    if (!textToSpeech.isSpeaking() && elapsedTime > TIME_BETWEEN_CAPTURES) {
+
+                        // todo if timer != null
+                        timer.cancel();
+                        timer = null;
+                        startCameraActivity();
+                    }
                 }
-            }
-        };
+            };
 
-        timer.schedule(timerTask, 1000, 1000);
+            timer.schedule(timerTask, 1000, 1000);
+        }
     }
-
 
     private void enableButtons() {
         if (textToSpeech != null && visualRecognition != null) {
@@ -315,6 +321,7 @@ public class MainActivity extends AppCompatActivity {
                 textToSpeech.speak(filterResArr.get(i).getName(), TextToSpeech.QUEUE_ADD, null, null);
             }
         }
+
         startTimer();
     }
 
@@ -744,11 +751,11 @@ public class MainActivity extends AppCompatActivity {
 
                 if (allPermissionsGranted()) {
 
-                    if (progressBar.getVisibility() == View.GONE && timer == null) {
-                        // Go to camera activity.
-                        Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
-                        startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
-                    }
+//                    if (progressBar.getVisibility() == View.GONE && timer == null) {
+//                        // Go to camera activity.
+//                        Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
+//                        startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+//                    }
 
                 } else {
 

@@ -20,6 +20,27 @@
     <string name="pref_description_auto_capture">Makes the app run automatically for blind people</string>
 
 
+    <string name="pref_title_capture_frequency">Capture frequency</string>
+    <string-array name="pref_capture_frequency_titles">
+        <item>Immediately</item>
+        <item>15 Sec</item>
+        <item>30 Sec</item>
+        <item>45 Sec</item>
+        <item>1 Min</item>
+        <item>1.5 Min</item>
+        <item>2 Min</item>
+    </string-array>
+    <string-array name="pref_capture_frequency_values">
+        <item>0</item>
+        <item>15</item>
+        <item>30</item>
+        <item>45</item>
+        <item>60</item>
+        <item>90</item>
+        <item>120</item>
+    </string-array>
+
+
     <!--Text to speech settings-->
     <string name="pref_header_text_to_speech">Text To Speech</string>
 
@@ -70,18 +91,6 @@
         <item>180</item>
         <item>360</item>
         <item>-1</item>
-    </string-array>
-
-    <string-array name="list_preference_entries">
-        <item>Entry 1</item>
-        <item>Entry 2</item>
-        <item>Entry 3</item>
-    </string-array>
-
-    <string-array name="list_preference_entry_values">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
     </string-array>
 
     <string-array name="multi_select_list_preference_default_value" />
