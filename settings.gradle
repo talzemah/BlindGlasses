@@ -1,2 +1,1 @@
-include ':app', ':SliderPreference'
-project(':SliderPreference').projectDir = new File('libs/AndroidSliderPreference')
+include ':app'

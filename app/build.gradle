@@ -23,14 +23,14 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:25.3.1'
-
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation 'com.android.support:support-v4:25.3.1'
     testImplementation 'junit:junit:4.12'
 
+    // A powerful image downloading and caching library for Android.
     api 'com.squareup.picasso:picasso:2.5.2'
-    api 'com.ibm.watson.developer_cloud:java-sdk:5.4.0'
+    // Java client library to use the Watson APIs.
+    api 'com.ibm.watson.developer_cloud:java-sdk:5.5.0'
+    // EZCam is an Android library that simplifies the use of Camera 2 API for a basic usage.
     api 'me.aflak.libraries:ezcam:2.3.3'
-    api 'com.github.jayschwa:AndroidSliderPreference:v1.0.1'
-    compile 'com.yokkomi:seekbar-preference:1.0'
 }
