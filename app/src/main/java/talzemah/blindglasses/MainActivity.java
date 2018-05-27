@@ -432,50 +432,6 @@ public class MainActivity extends AppCompatActivity {
         usingVisualRecognition();
     }
 
-    private void usingVisualRecognitionDemo() {
-
-        progressBar.setVisibility(View.VISIBLE);
-
-        /// compressImage();
-
-        currentResArr.clear();
-
-        currentResArr.add(new Result("a", 0.9f));
-        currentResArr.add(new Result("b", 0.8f));
-        currentResArr.add(new Result("c", 0.7f));
-        currentResArr.add(new Result("d", 0.6f));
-        currentResArr.add(new Result("e", 0.5f));
-        currentResArr.add(new Result("g color", 0.9f));
-        currentResArr.add(new Result("h color", 0.9f));
-        currentResArr.add(new Result("i color", 0.9f));
-        currentResArr.add(new Result("j color", 0.9f));
-
-        // Continue only if there are any results.
-        if (!currentResArr.isEmpty()) {
-
-            // Performs a set of filters on the results.
-            filterResArr = filter.startFiltering(currentResArr);
-
-            customAdapter = null;
-            customAdapter = new CustomArrayAdapter(this, R.layout.activity_listview, currentResArr, filterResArr);
-
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-
-                    // Show the sort result on screen.
-                    resListView.setAdapter(customAdapter);
-
-                    // Speak the relevant results that passed the filter
-                    speak(null);
-                }
-            });
-        }
-
-        progressBar.setVisibility(View.GONE);
-
-    }
-
     // Analyzes what is in the picture.
     private void usingVisualRecognition() {
 
@@ -568,7 +524,7 @@ public class MainActivity extends AppCompatActivity {
 
                     // Update adapter content.
                     customAdapter = null;
-                    customAdapter = new CustomArrayAdapter(this, R.layout.activity_listview, currentResArr, filterResArr);
+                    customAdapter = new CustomArrayAdapter(this, R.layout.custom_row_listview, currentResArr, filterResArr);
 
                     runOnUiThread(new Runnable() {
                         @Override
