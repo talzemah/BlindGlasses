@@ -1,6 +1,5 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-
     <SwitchPreference
         android:defaultValue="false"
         android:key="auto_capture_switch"
@@ -15,22 +14,5 @@
         android:negativeButtonText="@null"
         android:positiveButtonText="@null"
         android:title="@string/pref_title_capture_frequency" />
-
-
-    <!--<net.jayschwa.android.preference.SliderPreference-->
-    <!--android:defaultValue="0.5"-->
-    <!--android:dialogMessage="@string/pref_slider_speech_rate_message"-->
-    <!--android:key="slider_speech_rate"-->
-    <!--android:max="2"-->
-    <!--android:summary="@array/slider_speech_rate_summaries"-->
-    <!--android:title="@string/pref_slider_speech_rate_title" />-->
-
-    <!--<SeekBarPreference-->
-    <!--android:defaultValue="70"-->
-    <!--android:key="seek_bar_key"-->
-    <!--android:max="200"-->
-    <!--android:summary="This is the summary"-->
-    <!--android:title="This is a title"-->
-    <!--asp:min="50" />-->
 
 </PreferenceScreen>
