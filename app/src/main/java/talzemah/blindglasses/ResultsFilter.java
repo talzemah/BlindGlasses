@@ -1,5 +1,7 @@
 package talzemah.blindglasses;
 
+import android.preference.Preference;
+
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassResult;
 
 import java.util.ArrayList;
@@ -9,15 +11,18 @@ import java.util.List;
 
 public class ResultsFilter {
 
+    protected static final float DEFAULT_QUALITY_THRESHOLD = 0.6f;
+    protected static final int DEFAULT_MIN_THRESHOLD = 4;
+    protected static final int DEFAULT_MAX_THRESHOLD = 6;
+    protected static final int DEFAULT_MAX_COLOR_THRESHOLD = 3;
     // This score of results are considered reliable enough.
-    private static final float QUALITY_THRESHOLD = 0.6f;
+    protected static float QUALITY_THRESHOLD = 0.6f;
     // Determines the minimum number of results to be taken.
-    private static final int MIN_THRESHOLD = 4;
+    protected static int MIN_THRESHOLD = 4;
     // Determines the maximum number of results to be taken.
-    private static final int MAX_THRESHOLD = 6;
+    protected static int MAX_THRESHOLD = 6;
     // Determines the maximum color results to be taken.
-    private static final int MAX_COLOR_THRESHOLD = 3;
-
+    protected static int MAX_COLOR_THRESHOLD = 3;
 
     private ArrayList<Result> filterResArr;
     private ArrayList<Result> colorResArr;
@@ -54,6 +59,10 @@ public class ResultsFilter {
         });
 
         return classList;
+    }
+
+    public void updateFilterPerameters(Preference preference) {
+
     }
 
 //    private void sortResults(ArrayList<Result> resArr) {

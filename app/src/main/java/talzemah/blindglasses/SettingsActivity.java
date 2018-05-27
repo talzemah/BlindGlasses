@@ -156,8 +156,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     protected boolean isValidFragment(String fragmentName) {
         return PreferenceFragment.class.getName().equals(fragmentName)
                 || ImageCapturePreferenceFragment.class.getName().equals(fragmentName)
-                || DataSyncPreferenceFragment.class.getName().equals(fragmentName)
-                || NotificationPreferenceFragment.class.getName().equals(fragmentName);
+                || FiltersPreferenceFragment.class.getName().equals(fragmentName)
+                || TextToSpeechPreferenceFragment.class.getName().equals(fragmentName);
     }
 
     /**
@@ -178,13 +178,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // guidelines.
 
             bindPreferenceSummaryToValue(findPreference("capture_frequency"));
-
-            ListPreference lp = (ListPreference) findPreference("capture_frequency");
-            //lp.setValueIndex(4);
-
-
-            //bindPreferenceSummaryToValue(findPreference("example_text"));
-            //bindPreferenceSummaryToValue(findPreference("example_list"));
         }
 
         @Override
@@ -199,11 +192,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     }
 
     /**
-     * This fragment shows notification preferences only. It is used when the
+     * This fragment shows TextToSpeech preferences only. It is used when the
      * activity is showing a two-pane settings UI.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static class NotificationPreferenceFragment extends PreferenceFragment {
+    public static class TextToSpeechPreferenceFragment extends PreferenceFragment {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -214,7 +207,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
+
+            bindPreferenceSummaryToValue(findPreference("speech_rate"));
+            bindPreferenceSummaryToValue(findPreference("speech_pitch"));
         }
 
         @Override
@@ -229,11 +224,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     }
 
     /**
-     * This fragment shows data and sync preferences only. It is used when the
+     * This fragment shows Filters preferences only. It is used when the
      * activity is showing a two-pane settings UI.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static class DataSyncPreferenceFragment extends PreferenceFragment {
+    public static class FiltersPreferenceFragment extends PreferenceFragment {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -244,7 +239,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            bindPreferenceSummaryToValue(findPreference("sync_frequency"));
+
+            bindPreferenceSummaryToValue(findPreference("quality_threshold"));
+            bindPreferenceSummaryToValue(findPreference("min_threshold"));
+            bindPreferenceSummaryToValue(findPreference("max_threshold"));
+            bindPreferenceSummaryToValue(findPreference("max_color_threshold"));
         }
 
         @Override

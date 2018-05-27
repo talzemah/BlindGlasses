@@ -70,6 +70,13 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.CAMERA,
             Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
+    private static final boolean DEFAULT_IS_AUTO_MODE = false;
+    // TextToSpeech parameters.
+    private static float DEFAULT_SPEECH_RATE = 0.75f;
+    private static float DEFAULT_SPEECH_PITCH = 1.0f;
+    private static int DEFAULT_TIME_BETWEEN_CAPTURE = 60;
+
+
     private VisualRecognition visualRecognition;
     private TextToSpeech textToSpeech;
     private ResultsFilter filter;
@@ -127,9 +134,9 @@ public class MainActivity extends AppCompatActivity {
 
                         // Set custom parameters.
                         // Sets the speech rate.
-                        textToSpeech.setSpeechRate(0.7f);
+                        textToSpeech.setSpeechRate(DEFAULT_SPEECH_RATE);
                         // Sets the speech pitch for the TextToSpeech engine.
-                        textToSpeech.setPitch(0.9f);
+                        textToSpeech.setPitch(DEFAULT_SPEECH_PITCH);
                     }
 
                 } else {
@@ -202,11 +209,28 @@ public class MainActivity extends AppCompatActivity {
         preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         // Image capture.
-        isAutoMode = preferences.getBoolean("auto_capture_switch", false);
+        isAutoMode = preferences.getBoolean("auto_capture_switch", DEFAULT_IS_AUTO_MODE);
 
         // capture frequency.
-        String str = preferences.getString("capture_frequency", "60");
-        TIME_BETWEEN_CAPTURES = Integer.valueOf(str);
+        TIME_BETWEEN_CAPTURES = Integer.valueOf(preferences.getString("capture_frequency", String.valueOf(DEFAULT_TIME_BETWEEN_CAPTURE)));
+
+        // Speech rate.
+        textToSpeech.setSpeechRate(Float.valueOf(preferences.getString("speech_rate", String.valueOf(DEFAULT_SPEECH_RATE))));
+
+        // Speech pitch.
+        textToSpeech.setPitch(Float.valueOf(preferences.getString("speech_pitch", String.valueOf(DEFAULT_SPEECH_PITCH))));
+
+        // Quality threshold.
+        ResultsFilter.QUALITY_THRESHOLD = Float.valueOf(preferences.getString("quality_threshold", String.valueOf(ResultsFilter.DEFAULT_QUALITY_THRESHOLD)));
+
+        // Min threshold.
+        ResultsFilter.MIN_THRESHOLD = Integer.valueOf(preferences.getString("min_threshold", String.valueOf(ResultsFilter.DEFAULT_MIN_THRESHOLD)));
+
+        // Max threshold.
+        ResultsFilter.MAX_THRESHOLD = Integer.valueOf(preferences.getString("max_threshold", String.valueOf(ResultsFilter.DEFAULT_MAX_THRESHOLD)));
+
+        // Max color threshold.
+        ResultsFilter.MAX_COLOR_THRESHOLD = Integer.valueOf(preferences.getString("max_color_threshold", String.valueOf(ResultsFilter.DEFAULT_MAX_COLOR_THRESHOLD)));
 
     }
 

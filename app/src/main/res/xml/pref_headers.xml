@@ -8,12 +8,12 @@
         android:title="@string/pref_header_image_capture" />
 
     <header
-        android:fragment="talzemah.blindglasses.SettingsActivity$NotificationPreferenceFragment"
+        android:fragment="talzemah.blindglasses.SettingsActivity$TextToSpeechPreferenceFragment"
         android:icon="@drawable/voice"
         android:title="@string/pref_header_text_to_speech" />
 
     <header
-        android:fragment="talzemah.blindglasses.SettingsActivity$DataSyncPreferenceFragment"
+        android:fragment="talzemah.blindglasses.SettingsActivity$FiltersPreferenceFragment"
         android:icon="@drawable/filters"
         android:title="@string/pref_header_filters" />
 
