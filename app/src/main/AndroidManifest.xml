@@ -39,6 +39,7 @@
         <activity
             android:name=".CameraActivity"
             android:screenOrientation="portrait" />
+
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings" />

@@ -58,24 +58,24 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
-    // The minimum time between sampling images.
-    private static int TIME_BETWEEN_CAPTURES = 10;
+    // TextToSpeech parameters.
+    private static final float DEFAULT_SPEECH_RATE = 0.75f;
+    private static final float DEFAULT_SPEECH_PITCH = 1.0f;
+    private static final int DEFAULT_TIME_BETWEEN_CAPTURE = 60;
+    private static final int PERMISSIONS_REQUEST_CAMERA_AND_STORAGE = 2;
 
     // Codes to identify return request.
     private static final int REQUEST_IMAGE_CAPTURE = 1;
-    private static final int PERMISSIONS_REQUEST_CAMERA_AND_STORAGE = 3;
+    private static final boolean DEFAULT_IS_AUTO_MODE = false;
+    // The minimum time between sampling images.
+    private static int TIME_BETWEEN_CAPTURES;
+    // Handle auto mode.
+    private static boolean isAutoMode;
 
     // Mandatory permissions for application functionality.
     private String[] permissions = {
             Manifest.permission.CAMERA,
             Manifest.permission.WRITE_EXTERNAL_STORAGE};
-
-    private static final boolean DEFAULT_IS_AUTO_MODE = false;
-    // TextToSpeech parameters.
-    private static float DEFAULT_SPEECH_RATE = 0.75f;
-    private static float DEFAULT_SPEECH_PITCH = 1.0f;
-    private static int DEFAULT_TIME_BETWEEN_CAPTURE = 60;
-
 
     private VisualRecognition visualRecognition;
     private TextToSpeech textToSpeech;
@@ -93,15 +93,11 @@ public class MainActivity extends AppCompatActivity {
     private CustomArrayAdapter customAdapter;
     private ArrayList<Result> currentResArr;
     private ArrayList<Result> filterResArr;
-
-    // Shared preferences.
-    private SharedPreferences preferences;
-
     // In order to automatically press the button for the blind.
-    private Boolean isFirstClick = true;
+    private static Boolean isFirstClick = true;
 
-    // Preference.
-    private boolean isAutoMode;
+    // Shared preferences (for settings activity using).
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,14 +125,15 @@ public class MainActivity extends AppCompatActivity {
                         textToSpeech.setLanguage(Locale.getDefault());
                     } else {
                         // TextToSpeech initialization success.
-
-                        enableButtons();
-
                         // Set custom parameters.
+
                         // Sets the speech rate.
                         textToSpeech.setSpeechRate(DEFAULT_SPEECH_RATE);
                         // Sets the speech pitch for the TextToSpeech engine.
                         textToSpeech.setPitch(DEFAULT_SPEECH_PITCH);
+
+                        // Buttons became enables.
+                        enableButtons();
                     }
 
                 } else {
@@ -164,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
         currentResArr = new ArrayList<>();
         filterResArr = new ArrayList<>();
 
-        // Camera button.
+        // Start button.
         startBtn = (Button) findViewById(R.id.Btn_Start);
         startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -174,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Gallery Button.
+        // Settings Button.
         settingsBtn = (Button) findViewById(R.id.Btn_Settings);
         settingsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -279,30 +276,27 @@ public class MainActivity extends AppCompatActivity {
 
     private void startTimer() {
 
-        // todo is needed?
-        if (timer == null) {
-            timer = new Timer();
+        timer = new Timer();
 
-            TimerTask timerTask = new TimerTask() {
-                @Override
-                public void run() {
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
 
-                    // Calculate elapsed time in seconds.
-                    Date currentTime = Calendar.getInstance().getTime();
-                    int elapsedTime = (int) ((currentTime.getTime() - captureTime.getTime()) / 1000);
+                // Calculate elapsed time in seconds.
+                Date currentTime = Calendar.getInstance().getTime();
+                int elapsedTime = (int) ((currentTime.getTime() - captureTime.getTime()) / 1000);
 
-                    if (!textToSpeech.isSpeaking() && elapsedTime > TIME_BETWEEN_CAPTURES) {
+                if (!textToSpeech.isSpeaking() && elapsedTime > TIME_BETWEEN_CAPTURES) {
 
-                        // todo if timer != null
-                        timer.cancel();
-                        timer = null;
-                        startCameraActivity();
-                    }
+                    timer.cancel();
+                    timer = null;
+                    startCameraActivity();
                 }
-            };
+            }
+        };
 
-            timer.schedule(timerTask, 1000, 1000);
-        }
+        timer.schedule(timerTask, 1000, 1000);
+
     }
 
     private void enableButtons() {
@@ -330,7 +324,6 @@ public class MainActivity extends AppCompatActivity {
         if (textToSpeech != null)
             textToSpeech.shutdown();
 
-
         if (visualRecognition != null)
             visualRecognition = null;
     }
@@ -351,7 +344,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void startCameraActivity() {
-
 
         if (!allPermissionsGranted()) {
 
@@ -403,7 +395,7 @@ public class MainActivity extends AppCompatActivity {
 
                     if (path != null) {
                         currentPhotoFile = new File(path);
-                        showAndAnalyzeImage();
+                        HandleCurrentImage();
                     }
 
                 } else {
@@ -419,7 +411,7 @@ public class MainActivity extends AppCompatActivity {
         resListView.setAdapter(null);
     }
 
-    private void showAndAnalyzeImage() {
+    private void HandleCurrentImage() {
 
         // Compress the image.
         compressImage();
@@ -465,11 +457,12 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+
                         progressBar.setVisibility(View.GONE);
                     }
                 });
 
-                ProcessingResultsBeforeSpeak(response);
+                ProcessingResultsBeforeSpeech(response);
             }
 
             @Override
@@ -482,6 +475,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+
                         progressBar.setVisibility(View.GONE);
                         Toast.makeText(MainActivity.this, "Error while processing the image!", Toast.LENGTH_SHORT).show();
                     }
@@ -489,6 +483,7 @@ public class MainActivity extends AppCompatActivity {
 
                 Log.d(TAG, e.toString());
 
+                // Speech the error to blind user.
                 speak("Error while processing the image, retrying.");
             }
         });
@@ -496,7 +491,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // Get the result object from VR, sort the element and update the currentResArr.
-    private void ProcessingResultsBeforeSpeak(ClassifiedImages result) {
+    private void ProcessingResultsBeforeSpeech(ClassifiedImages result) {
 
         // Get all results.
         if (result.getImages() != null) {
@@ -542,28 +537,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void compressImage() {
+    private void compressImage() {
 
         String imagePath = getRealPathFromURI(currentPhotoFile.getAbsolutePath());
         Bitmap scaledBitmap = null;
 
         BitmapFactory.Options options = new BitmapFactory.Options();
 
-        // by setting this field as true, the actual bitmap pixels are not loaded in the memory. Just the bounds are loaded. If
-        // you try the use the bitmap here, you will get null.
+        // By setting this field as true, the actual bitmap pixels are not loaded in the memory. Just the bounds are loaded. If
+        // You try the use the bitmap here, you will get null.
         options.inJustDecodeBounds = true;
         Bitmap bmp = BitmapFactory.decodeFile(imagePath, options);
 
         int actualHeight = options.outHeight;
         int actualWidth = options.outWidth;
 
-        // max Height and width values of the compressed image is taken as 816x612
+        // Max Height and width values of the compressed image is taken as 816x612
         float maxHeight = 1080.0f;
         float maxWidth = 1920.0f;
         float imgRatio = actualWidth / actualHeight;
         float maxRatio = maxWidth / maxHeight;
 
-        // width and height values are set maintaining the aspect ratio of the image
+        // Width and height values are set maintaining the aspect ratio of the image
         if (actualHeight > maxHeight || actualWidth > maxWidth) {
             if (imgRatio < maxRatio) {
                 imgRatio = maxHeight / actualHeight;
@@ -580,17 +575,17 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // setting inSampleSize value allows to load a scaled down version of the original image
+        // Setting inSampleSize value allows to load a scaled down version of the original image
         options.inSampleSize = calculateInSampleSize(options, actualWidth, actualHeight);
 
-        // inJustDecodeBounds set to false to load the actual bitmap
+        // InJustDecodeBounds set to false to load the actual bitmap
         options.inJustDecodeBounds = false;
 
         // Temp storage to use for decoding.
         options.inTempStorage = new byte[16 * 1024];
 
         try {
-            // load the bitmap from its path
+            // Load the bitmap from its path
             bmp = BitmapFactory.decodeFile(imagePath, options);
         } catch (OutOfMemoryError exception) {
             exception.printStackTrace();
@@ -616,7 +611,7 @@ public class MainActivity extends AppCompatActivity {
             canvas.drawBitmap(bmp, middleX - bmp.getWidth() / 2, middleY - bmp.getHeight() / 2, new Paint(Paint.FILTER_BITMAP_FLAG));
         }
 
-        // check the rotation of the image and display it properly
+        // Check the rotation of the image and display it properly
         ExifInterface exif;
         try {
             exif = new ExifInterface(imagePath);
@@ -649,13 +644,14 @@ public class MainActivity extends AppCompatActivity {
         try {
             out = new FileOutputStream(file);
 
-            // write the compressed bitmap at the destination specified by filename.
+            // Write the compressed bitmap at the destination specified by filename.
             scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
 
+        // Delete the Original image (full size).
         currentPhotoFile.delete();
 
         currentPhotoFile = file;
@@ -680,6 +676,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+
         final int height = options.outHeight;
         final int width = options.outWidth;
         int inSampleSize = 1;
@@ -689,6 +686,7 @@ public class MainActivity extends AppCompatActivity {
             final int widthRatio = Math.round((float) width / (float) reqWidth);
             inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
         }
+
         final float totalPixels = width * height;
         final float totalReqPixelsCap = reqWidth * reqHeight * 2;
         while (totalPixels / (inSampleSize * inSampleSize) > totalReqPixelsCap) {
@@ -698,7 +696,7 @@ public class MainActivity extends AppCompatActivity {
         return inSampleSize;
     }
 
-    public File getFilename() {
+    private File getFilename() {
 
         // Create directory.
         File appDirectory = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/BlindGlasses");
@@ -729,20 +727,14 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case PERMISSIONS_REQUEST_CAMERA_AND_STORAGE:
 
-                if (allPermissionsGranted()) {
-
-//                    if (progressBar.getVisibility() == View.GONE && timer == null) {
-//                        // Go to camera activity.
-//                        Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
-//                        startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
-//                    }
-
-                } else {
+                if (!allPermissionsGranted()) {
 
                     // Permission/s denied.
                     Toast.makeText(this, "The app can not work without camera and storage permissions", Toast.LENGTH_LONG).show();
-
                 }
+
+                // No need special treatment.
+                // Work well by shouldWorkAutomatically();
                 break;
 
             default:

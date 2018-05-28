@@ -27,6 +27,7 @@ public class CameraActivity extends AppCompatActivity {
 
     private static final String TAG = "CameraActivity";
 
+    // The delay is for achieve good focus by the camera.
     private static final int CAPTURE_IMAGE_DELAY = 2000;
 
     // EZCam is an Android library that simplifies the use of Camera 2 API.
@@ -38,10 +39,8 @@ public class CameraActivity extends AppCompatActivity {
         @Override
         public void onCameraReady() {
             // Set capture settings.
-            // todo change or delete
-            //camera.setCaptureSetting(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO);
-            //camera.setCaptureSetting(CaptureRequest.COLOR_CORRECTION_ABERRATION_MODE, CameraMetadata.COLOR_CORRECTION_ABERRATION_MODE_HIGH_QUALITY);
-            //camera.setCaptureSetting(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_NEGATIVE);
+
+            // Prevents Flash from being used in the theater
             camera.setCaptureSetting(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
 
             camera.startPreview();
@@ -77,8 +76,7 @@ public class CameraActivity extends AppCompatActivity {
             } finally {
 
                 Intent intent = new Intent();
-                if (imageFile != null)
-                    intent.putExtra("imagePath", imageFile.getAbsolutePath());
+                intent.putExtra("imagePath", imageFile.getAbsolutePath());
                 setResult(imageFile.exists() ? RESULT_OK : RESULT_CANCELED, intent);
                 finish();
             }

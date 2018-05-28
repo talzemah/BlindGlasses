@@ -7,10 +7,8 @@ public class Result {
     private String name;
     private float score;
 
-    public Result() {
-    }
 
-    public Result(String name, float score) {
+    Result(String name, float score) {
         this.name = name;
         this.score = score;
     }
@@ -23,7 +21,7 @@ public class Result {
         return score;
     }
 
-    public void setname(String name) {
+    public void setName(String name) {
 
         this.name = name;
     }

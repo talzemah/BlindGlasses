@@ -1,7 +1,5 @@
 package talzemah.blindglasses;
 
-import android.preference.Preference;
-
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassResult;
 
 import java.util.ArrayList;
@@ -11,18 +9,18 @@ import java.util.List;
 
 public class ResultsFilter {
 
-    protected static final float DEFAULT_QUALITY_THRESHOLD = 0.6f;
-    protected static final int DEFAULT_MIN_THRESHOLD = 4;
-    protected static final int DEFAULT_MAX_THRESHOLD = 6;
-    protected static final int DEFAULT_MAX_COLOR_THRESHOLD = 3;
     // This score of results are considered reliable enough.
-    protected static float QUALITY_THRESHOLD = 0.6f;
+    protected static float QUALITY_THRESHOLD;
+    protected static final float DEFAULT_QUALITY_THRESHOLD = 0.6f;
     // Determines the minimum number of results to be taken.
-    protected static int MIN_THRESHOLD = 4;
+    protected static int MIN_THRESHOLD;
+    protected static final int DEFAULT_MIN_THRESHOLD = 4;
     // Determines the maximum number of results to be taken.
-    protected static int MAX_THRESHOLD = 6;
+    protected static int MAX_THRESHOLD;
+    protected static final int DEFAULT_MAX_THRESHOLD = 6;
     // Determines the maximum color results to be taken.
-    protected static int MAX_COLOR_THRESHOLD = 3;
+    protected static int MAX_COLOR_THRESHOLD;
+    protected static final int DEFAULT_MAX_COLOR_THRESHOLD = 3;
 
     private ArrayList<Result> filterResArr;
     private ArrayList<Result> colorResArr;
@@ -39,7 +37,7 @@ public class ResultsFilter {
 
     public ArrayList<Result> startFiltering(ArrayList<Result> resArr) {
 
-        preparingArrays();
+        clearArrays();
         filterQualityThreshold(resArr);
         filterMinThreshold(resArr);
         filterMaxThreshold();
@@ -52,8 +50,10 @@ public class ResultsFilter {
     public List<ClassResult> sortResults(List<ClassResult> classList) {
 
         Collections.sort(classList, new Comparator<ClassResult>() {
+
             @Override
             public int compare(ClassResult o1, ClassResult o2) {
+
                 return -(o1.getScore().compareTo(o2.getScore()));
             }
         });
@@ -61,27 +61,7 @@ public class ResultsFilter {
         return classList;
     }
 
-    public void updateFilterPerameters(Preference preference) {
-
-    }
-
-//    private void sortResults(ArrayList<Result> resArr) {
-//
-//        // Sort the results
-//        Collections.sort(resArr, new Comparator<Result>() {
-//            @Override
-//            public int compare(Result r1, Result r2) {
-//
-//                Double d1 = (double) r1.getScore();
-//                Double d2 = (double) r1.getScore();
-//
-//                return -(d1.compareTo(d2));
-//            }
-//        });
-//
-//    }
-
-    private void preparingArrays() {
+    private void clearArrays() {
 
         filterResArr.clear();
         colorResArr.clear();
@@ -99,7 +79,7 @@ public class ResultsFilter {
                 }
 
             } else {
-                // For reasons of efficiency
+                // For reasons of efficiency.
                 break;
             }
         }
@@ -116,7 +96,6 @@ public class ResultsFilter {
     }
 
     private void filterMaxThreshold() {
-
 
         while (filterResArr.size() > MAX_THRESHOLD) {
             filterResArr.remove(filterResArr.size() - 1);
@@ -151,7 +130,6 @@ public class ResultsFilter {
             previousFilterResArr = (ArrayList<Result>) filterResArr.clone();
         }
 
-
         // Compare to previous time.
         if (!previousColorResArr.isEmpty()) {
             for (Result res : colorResArr) {
@@ -172,18 +150,8 @@ public class ResultsFilter {
     }
 
     private void mergeResultsWithColor() {
+
         filterResArr.addAll(colorResArr);
-    }
-
-
-    // Getter & Setter
-
-    public ArrayList<Result> getFilterResArr() {
-        return filterResArr;
-    }
-
-    public void setFilterResArr(ArrayList<Result> filterResArr) {
-        this.filterResArr = filterResArr;
     }
 
 } // End class

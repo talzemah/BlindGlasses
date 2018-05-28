@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <paths>
-
-    <!--todo delete-->
     <external-path
         name="my_images"
         path="Android/data/talzemah.blindglasses/files/Pictures" />
-
 </paths>

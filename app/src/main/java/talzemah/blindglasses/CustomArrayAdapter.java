@@ -1,10 +1,11 @@
 package talzemah.blindglasses;
 
-/**
- * Created by Tal on 18/04/2018.
+/*
+  Created by Tal on 18/04/2018.
  */
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +21,7 @@ public class CustomArrayAdapter extends ArrayAdapter<String> {
     private ArrayList<Result> resArr;
     private ArrayList<Result> filterResArr;
 
-    public CustomArrayAdapter(Context context, int textViewResourceId, ArrayList<Result> resArr, ArrayList<Result> filterResArr) {
+    CustomArrayAdapter(Context context, int textViewResourceId, ArrayList<Result> resArr, ArrayList<Result> filterResArr) {
 
         super(context, textViewResourceId, convertToStringArray(resArr));
         this.resArr = resArr;
@@ -28,8 +29,8 @@ public class CustomArrayAdapter extends ArrayAdapter<String> {
     }
 
     private static String[] convertToStringArray(ArrayList<Result> resArr) {
-        String[] arr = new String[resArr.size()];
 
+        String[] arr = new String[resArr.size()];
 
         for (int i = 0; i < arr.length; i++) {
             arr[i] = resArr.get(i).getName() + " " + resArr.get(i).getScore();
@@ -38,10 +39,9 @@ public class CustomArrayAdapter extends ArrayAdapter<String> {
         return arr;
     }
 
-
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        //return super.getView(position, convertView, parent);
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
 
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(getContext().LAYOUT_INFLATER_SERVICE);
         View row = inflater.inflate(R.layout.custom_row_listview, parent, false);
@@ -51,7 +51,7 @@ public class CustomArrayAdapter extends ArrayAdapter<String> {
 
         label.setText(resArr.get(position).getName() + " " + resArr.get(position).getScore());
 
-
+        // Set appropriate icon for each row.
         if (filterResArr.contains(resArr.get(position))) {
             icon.setImageResource(R.drawable.v);
         } else {
