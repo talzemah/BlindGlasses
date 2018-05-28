@@ -61,16 +61,18 @@ public class MainActivity extends AppCompatActivity {
     // TextToSpeech parameters.
     private static final float DEFAULT_SPEECH_RATE = 0.75f;
     private static final float DEFAULT_SPEECH_PITCH = 1.0f;
+
+    // The minimum time between sampling images.
+    private static int TIME_BETWEEN_CAPTURES;
     private static final int DEFAULT_TIME_BETWEEN_CAPTURE = 60;
-    private static final int PERMISSIONS_REQUEST_CAMERA_AND_STORAGE = 2;
 
     // Codes to identify return request.
     private static final int REQUEST_IMAGE_CAPTURE = 1;
-    private static final boolean DEFAULT_IS_AUTO_MODE = false;
-    // The minimum time between sampling images.
-    private static int TIME_BETWEEN_CAPTURES;
+    private static final int PERMISSIONS_REQUEST_CAMERA_AND_STORAGE = 2;
+
     // Handle auto mode.
     private static boolean isAutoMode;
+    private static final boolean DEFAULT_IS_AUTO_MODE = false;
 
     // Mandatory permissions for application functionality.
     private String[] permissions = {
@@ -93,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
     private CustomArrayAdapter customAdapter;
     private ArrayList<Result> currentResArr;
     private ArrayList<Result> filterResArr;
+
     // In order to automatically press the button for the blind.
     private static Boolean isFirstClick = true;
 
